@@ -96,6 +96,8 @@ npm test -w contracts
 | Main vault: two-day round; the engine commits its reads here | `0x41b72ae9a2e352cbfb77950715606f06f5e4d327` | `deploy/terms-vault.json` |
 | Stage vault: one-minute round; the one the phone page opens | `0x1781eaafe2b674056f64a7daee1fb77fd8e85b8b` | `deploy/terms-stage.json` |
 | Second stage vault: one-minute round; in default since a rehearsal on 2026-11-18, closed for good | `0x7653ac79ed456c76eb445482ebe832b15286bb94` | `deploy/terms-stage2.json` |
+| Fourth stage vault: one-minute round; the default shown in the demo video was declared here on 2026-11-19, closed for good | `0x493aa0b9b855fe4b06769e8461ee807c9815d6b0` | `deploy/terms-stage4.json` |
+| Third stage vault: one-minute round; a round left open past its deadline on 2026-11-19 in a failed take, not defaulted | `0x6dacabf26d0af405b4603600bc6d622e9d540ffd` | `deploy/terms-stage3.json` |
 
 The engine's rule hash, named on chain before its first read: `35e939081fa8e0b4ef01814c6437d1cb9a009c977c57bc390be004488ad86ea8`. `node scripts/rule-hash.mjs` works it out again from this repository.
 

@@ -26,6 +26,7 @@ const VAULT_ABI = parseAbi([
   "function limits() view returns (uint256 byBond, uint256 byVault, uint256 maxDraw)",
   "function epoch() view returns (uint256 id, bool isOpen, bool isDefaulted, bytes32 plan, uint256 drawn, uint64 deadline)",
   "function bond() view returns (uint256)",
+  "function epochSeconds() view returns (uint32)",
   "function assets() view returns (uint256)",
   "function operator() view returns (address)",
   "error NotOperator()",
