@@ -1,0 +1,16 @@
+{
+  "name": "@app/rule",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./hash": "./src/hash.ts"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@app/score": "0.1.0"
+  }
+}

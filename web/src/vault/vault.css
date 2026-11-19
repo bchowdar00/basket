@@ -1,0 +1,169 @@
+/* BASKET — the vault's phone page. Only what weave.css does not already give: a one-column,
+   phone-width layout and the few pieces the pools screen has no equivalent for (the test-money
+   banner, the holdings block, the single primary button, the terms list, the declare-default
+   control). It uses weave.css's tokens and classes; it is imported AFTER weave.css so it adds to it.
+   One indigo thread stays reserved for what is the person's own (here: the one primary action).
+   Madder is errors only. No new hues, gradients, shadows or rounded cards. */
+
+.vault {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px clamp(14px, 5vw, 24px) 48px;
+  font-family: var(--mono);
+  color: var(--ink);
+}
+
+/* The note that says what the money is: small, quiet, at the foot of every screen. */
+.vault-foot {
+  margin: 24px 0 0;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-quiet);
+  max-width: 52ch;
+}
+
+.vault-head { margin: 0 0 16px; }
+.vault-name { font-stretch: 62.5%; font-size: clamp(30px, 10vw, 44px); line-height: 1.05; margin: 0 0 8px; }
+.vault-who { margin: 0; font-size: 13px; color: var(--ink-quiet); }
+.vault-addr { color: var(--ink); }
+
+/* Holdings. The worth is the lead figure; the rest are quiet. */
+.vault-hold { margin: 0 0 18px; padding: 0 0 16px; border-bottom: 1px solid var(--cane); }
+.vault-figure { margin: 3px 0; font-size: 14px; color: var(--ink); font-variant-numeric: tabular-nums; }
+.vault-figure.f1 { margin-bottom: 8px; display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; }
+.vault-amount { font-family: var(--cond); font-stretch: 62.5%; font-size: clamp(40px, 13vw, 56px); line-height: 1; letter-spacing: -0.01em; color: var(--indigo); }
+.vault-amount-of { font-size: 14px; color: var(--ink-quiet); }
+.vault-figure.f3 { color: var(--ink-quiet); }
+
+/* The one next step: its sentence, then at most one primary button, filled indigo. */
+.vault-step { margin: 0 0 22px; }
+.vault-step-sentence { margin: 0 0 12px; font-size: 15px; color: var(--ink); max-width: 46ch; }
+.vault-primary {
+  display: block;
+  width: 100%;
+  font-family: var(--cond);
+  font-stretch: 75%;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 16px;
+  color: var(--linen);
+  background: var(--indigo);
+  border: 1px solid var(--indigo);
+  border-radius: 0;
+  padding: 14px 16px;
+  text-align: center;
+  cursor: pointer;
+}
+.vault-primary:disabled { opacity: 0.55; cursor: default; }
+
+.vault-notice { margin: 0 0 14px; font-size: 13px; color: var(--ink-quiet); }
+
+/* The quiet terms and the commit log: a plain definition list, hairline rules, no indigo. */
+.vault-terms, .vault-commits, .vault-default {
+  margin: 0 0 18px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--cane);
+}
+.vault-terms-head {
+  font-family: var(--cond);
+  font-stretch: 75%;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 13px;
+  color: var(--ink);
+  margin: 0 0 8px;
+}
+.vault-terms-list { margin: 0; display: grid; grid-template-columns: 1fr; gap: 2px 0; }
+.vault-terms-list dt {
+  font-family: var(--cond);
+  font-stretch: 75%;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 11px;
+  color: var(--ink-quiet);
+  margin-top: 8px;
+}
+.vault-terms-list dd { margin: 0; font-size: 13px; color: var(--ink); font-variant-numeric: tabular-nums; }
+
+.vault-hash { color: var(--indigo); text-decoration: underline; text-underline-offset: 2px; word-break: break-all; }
+
+/* Declaring a default is a plain outlined button, never the indigo primary: it is not the person's
+   own money moving, and it is only live once the deadline has passed. */
+.vault-declare {
+  display: block;
+  width: 100%;
+  font-family: var(--cond);
+  font-stretch: 75%;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 14px;
+  color: var(--ink);
+  background: var(--linen);
+  border: 1px solid var(--ink);
+  border-radius: 0;
+  padding: 11px 16px;
+  text-align: center;
+  cursor: pointer;
+  margin-top: 8px;
+}
+.vault-declare:disabled { opacity: 0.45; cursor: default; }
+
+.vault-missing { margin: 4px 0 0; padding-left: 18px; font-size: 13px; color: var(--ink); }
+.vault-waiting { color: var(--ink-quiet); font-size: 14px; }
+
+/* ---- Polish pass, 2026-11-18 -------------------------------------------- */
+
+/* The name is closed by the same basket-weave band as the operator's masthead. */
+.vault-head { position: relative; padding-bottom: 22px; }
+.vault-head::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 12px;
+  background-color: var(--cane);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M0 4h12M0 8h12M12 16h12M12 20h12M16 0v12M20 0v12M4 12v12M8 12v12M12 0v24M0 12h24M0 0v24' stroke='%239a7741' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+  background-size: 24px 24px;
+  background-repeat: repeat-x;
+}
+.vault-name { font-weight: 400; letter-spacing: 0.02em; }
+
+/* What the phone holds: the worth leads, in the one dyed thread, since it is the person's own. */
+.vault-figure.f1 { font-size: 19px; line-height: 1.35; color: var(--indigo); text-wrap: balance; }
+
+/* The one button: every state drawn. While a step is on its way the button is a moving weft, so a
+   held button reads as working, not as broken. */
+.vault-primary { min-height: 52px; transition: background-color 140ms ease-out, transform 80ms ease-out; -webkit-tap-highlight-color: transparent; }
+.vault-primary:hover { background: #22327a; border-color: #22327a; }
+.vault-primary:active { transform: translateY(1px); }
+.vault-primary:disabled {
+  opacity: 1;
+  color: var(--linen);
+  background-color: var(--indigo);
+  background-image: repeating-linear-gradient(90deg, transparent 0 10px, rgba(242, 236, 224, 0.22) 10px 12px);
+  background-size: 24px 100%;
+  animation: weft-run 700ms linear infinite;
+}
+@keyframes weft-run { from { background-position: 0 0; } to { background-position: 24px 0; } }
+@media (prefers-reduced-motion: reduce) { .vault-primary:disabled { animation: none; } }
+.vault-declare { min-height: 48px; transition: background-color 140ms ease-out, color 140ms ease-out; }
+.vault-declare:not(:disabled):hover { background: var(--ink); color: var(--linen); }
+
+/* A notice and an error are set apart from the figures, not run into them. */
+.vault-notice { padding: 8px 12px; background: var(--linen-2); color: var(--ink); border-left: 0; }
+.vault .error { padding: 8px 12px; border: 1px solid var(--madder); background: var(--linen-2); }
+
+/* The terms: the label and its value sit on one line where there is room. */
+.vault-terms-list dt { margin-top: 10px; }
+.vault-terms-head { font-size: 14px; font-weight: 400; letter-spacing: 0.06em; margin-bottom: 4px; }
+.vault-step-sentence { text-wrap: pretty; }
+
+/* While a round is open, what the operator has drawn is said beside the worth, so a holding does not read as lost. */
+.vault-out { font-size: 13px; color: var(--ink); padding: 8px 12px; background: var(--linen-2); margin: 8px 0; text-wrap: pretty; }
+
+/* The default, when it can be declared: at the top, in madder, the one thing on the page that asks. */
+.vault-default-live { border: 1px solid var(--madder); background: var(--linen-2); padding: 14px; margin: 0 0 20px; }
+.vault-default-live .vault-terms-head { color: var(--madder); font-size: 16px; }
+.vault-default-live .vault-declare { background: var(--madder); border-color: var(--madder); color: var(--linen); min-height: 52px; font-size: 16px; }
+.vault-default-live .vault-declare:not(:disabled):hover { background: #8a2f23; border-color: #8a2f23; }
+/* And once it is declared: what happened, stated once, no button. */
+.vault-default-done { border: 1px solid var(--ink); background: var(--linen-2); padding: 14px; margin: 0 0 20px; }

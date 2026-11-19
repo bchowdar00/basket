@@ -1,0 +1,71 @@
+/* The departure board's ground, palette and type (his choice, 2026-11-17). Charcoal ground, cream
+   type; amber for money no maker stands for; one green held in reserve, unused by this page; red for
+   an error or a stale read only. Archivo in a condensed width, in capitals, for pool names and
+   labels; Spline Sans Mono for every figure. Both faces are the variable woff2 already copied in. */
+
+@font-face {
+  font-family: "Archivo";
+  src: url("./fonts/archivo-latin-wdth-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-stretch: 62.5% 125%;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Spline Sans Mono";
+  src: url("./fonts/spline-sans-mono-latin-wght-normal.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: dark;
+  --ground: #14161a;
+  --ground-2: #1b1e24;
+  --line: #2b2f37;
+  --cream: #f2ece0;
+  --cream-dim: #9d9b92;
+  --amber: #e7a53a;
+  --green: #4caf7d; /* reserved for a pool where the vault stands; unused by this page */
+  --red: #e4574c;
+  --cond: "Archivo", system-ui, "Segoe UI", sans-serif;
+  --mono: "Spline Sans Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--cream);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 15px;
+  line-height: 1.4;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3, th, .count-label, .pool-name, .event-state, .col-money, thead th {
+  font-family: var(--cond);
+  font-stretch: 75%; /* condensed */
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.gemini {
+  font-family: var(--mono);
+  font-stretch: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--cream-dim);
+  font-size: 0.72em;
+}

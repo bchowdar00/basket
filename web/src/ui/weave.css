@@ -1,0 +1,450 @@
+/* BASKET — a woven, light theme. Drop-in replacement for base.css + flip.css together.
+   One budget spread as quotes across many pools: the pools are the warp (fixed vertical strands),
+   our quotes the weft threaded across them, the allocation a weave. The weave draws the data; it is
+   not wallpaper. Light ground (unbleached linen) replacing the dark departure board. Archivo at a
+   condensed width, capitals, for names and labels; Spline Sans Mono, tabular figures, for numbers.
+   One dyed thread — indigo — is reserved for what is OURS (our quotes, our share, the primary
+   button). Madder red is errors and stale reads only. No other hues; no decorative gradients,
+   shadows, rounded cards, wicker textures or basket icons. The two faces are the variable woff2
+   already in web/src/ui/fonts/; the preview links this file and may fall back to system fonts. */
+
+@font-face {
+  font-family: "Archivo";
+  src: url("./fonts/archivo-latin-wdth-normal.woff2") format("woff2");
+  font-weight: 400;
+  font-stretch: 62.5% 125%;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Spline Sans Mono";
+  src: url("./fonts/spline-sans-mono-latin-wght-normal.woff2") format("woff2");
+  font-weight: 300 700;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light;
+  --linen: #f2ece0;     /* ground */
+  --linen-2: #e9e1d1;   /* a recessed ground: an empty hour, an input well */
+  --ink: #221c15;       /* text */
+  --ink-quiet: #6b6154; /* notes (5.15:1 on linen) */
+  --cane: #c8a46a;      /* warm straw strand / hairline rule (never text) */
+  --cane-dark: #9a7741; /* darker strand / rule (never text) */
+  --indigo: #2b3f8c;    /* the one dyed thread: ours — our quotes, our share, the primary button */
+  --madder: #a63a2b;    /* errors and stale reads only (5.48:1 on linen) */
+  --cond: "Archivo", system-ui, "Segoe UI", sans-serif;
+  --mono: "Spline Sans Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--linen);
+  color: var(--ink);
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Condensed capitals for names and labels. */
+h1, h2, h3, th,
+.count-label, .pool-name, .event-state, .col-money, .col-makers, thead th,
+.calc-range-label, .alloc-budget-label, .alloc-name, .alloc-leftout-head {
+  font-family: var(--cond);
+  font-stretch: 75%;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; cursor: pointer; text-align: left; }
+
+/* The Gemini-rules phrase and the source line: quiet, not condensed, not capitalised. */
+.gemini {
+  font-family: var(--mono);
+  font-stretch: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink-quiet);
+  font-size: 0.72em;
+}
+
+/* ---- Focus: a visible indigo ring everywhere ---------------------------- */
+a:focus-visible, button:focus-visible, input:focus-visible,
+[type="range"]:focus-visible, [type="radio"]:focus-visible, [type="number"]:focus-visible {
+  outline: 2px solid var(--indigo);
+  outline-offset: 2px;
+}
+
+/* ---- Selvedge: a double rule with a fine stitched line between ----------- *
+ * Replaces the plain borders between the masthead, the allocator, the calculator and the table. */
+.topbar, .alloc, .calc { position: relative; border-bottom: 0; }
+.topbar::after, .alloc::after, .calc::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 4px;
+  border-top: 1px solid var(--cane-dark);
+  border-bottom: 1px solid var(--cane-dark);
+  background-image: repeating-linear-gradient(to right, var(--cane) 0 5px, transparent 5px 10px);
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
+  background-position: left center;
+}
+
+.board { padding: 20px clamp(16px, 4vw, 40px) 48px; max-width: 1400px; margin: 0 auto; }
+
+.screen { display: block; }
+
+/* ---- Masthead ----------------------------------------------------------- */
+.topbar { display: grid; grid-template-columns: 1fr auto; align-items: end; column-gap: 24px; padding-bottom: 30px; margin-bottom: 22px; }
+.topbar .figure { grid-column: 1 / -1; }
+
+.name { font-size: clamp(34px, 5vw, 56px); font-stretch: 62.5%; letter-spacing: 0.02em; margin: 0 0 10px; line-height: 1; }
+/* The one purely decorative weave: the band that closes the masthead. A basket weave of the two
+   strand colours, three strands across then three strands down, one row of it. */
+.topbar::after {
+  height: 12px;
+  border: 0;
+  background-color: var(--cane);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24'%3E%3Cpath d='M0 4h12M0 8h12M12 16h12M12 20h12M16 0v12M20 0v12M4 12v12M8 12v12M12 0v24M0 12h24M0 0v24' stroke='%239a7741' stroke-width='1' fill='none'/%3E%3C/svg%3E");
+  background-size: 24px 24px;
+  background-repeat: repeat-x;
+  background-position: left top;
+}
+
+.countdown { margin: 0 0 12px; font-size: 13px; color: var(--ink); text-align: right; }
+.countdown .digits { display: inline-block; min-width: 1.5em; font-size: 30px; line-height: 1; font-weight: 500; color: var(--indigo); text-align: right; }
+.count-label { color: var(--ink-quiet); font-size: 12px; }
+
+.figure { margin: 2px 0; font-size: 15px; max-width: 74ch; }
+.figure.f1 { color: var(--ink); font-size: 17px; margin-top: 10px; }
+.figure.f2, .figure.f3, .figure.gap { color: var(--ink-quiet); }
+.figure .live-note { color: var(--ink-quiet); }
+.figure.gap { margin-top: 8px; }
+
+/* ---- Body / pool table -------------------------------------------------- */
+.body { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.table-scroll { flex: 1 1 560px; min-width: 0; overflow-x: auto; }
+
+table.pools { width: 100%; border-collapse: collapse; white-space: nowrap; }
+table.pools th, table.pools td { text-align: left; padding: 9px 16px 9px 0; border-bottom: 1px solid var(--cane); vertical-align: top; }
+thead th { font-size: 11px; color: var(--ink-quiet); font-stretch: 75%; }
+thead th .gemini { display: block; font-size: 10px; }
+thead th .head-note { display: block; font-size: 10px; color: var(--ink-quiet); font-stretch: normal; text-transform: none; letter-spacing: 0; }
+thead th .gemini, thead th .head-note { white-space: normal; max-width: 16ch; }
+td.makers { color: var(--ink); font-variant-numeric: tabular-nums; }
+.strip-col { vertical-align: middle; }
+
+.pool-name button { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.04em; color: var(--ink); font-size: 15px; }
+tr.open .pool-name button { color: var(--indigo); text-decoration: underline; text-underline-offset: 3px; }
+
+td.state { color: var(--ink); }
+td.state.s-none-prices { color: var(--ink); }
+td.state.s-none-sizes { color: var(--ink); }
+td.state.s-may { color: var(--ink-quiet); }
+
+td.money { font-variant-numeric: tabular-nums; color: var(--ink); }
+td.age { color: var(--ink-quiet); font-variant-numeric: tabular-nums; }
+td.age.stale { color: var(--madder); }
+
+/* ---- The week strip, restyled as a woven band --------------------------- *
+ * Same 168-cell markup, CSS only. A faint warp underlies the band; each cell is a short weft stitch:
+ * cane where a maker may qualify (c-cream), darker cane where nobody could (c-amber), a gap where the
+ * hour is empty (c-empty). */
+.strip {
+  display: inline-grid;
+  grid-template-columns: repeat(24, 1fr);
+  grid-auto-rows: 4px;
+  gap: 1px;
+  width: 192px;
+  max-width: 48vw;
+  padding: 2px;
+  background-image: repeating-linear-gradient(to right, var(--cane-dark) 0 1px, transparent 1px 10px);
+  background-color: var(--linen-2);
+}
+.cell { display: block; width: 100%; height: 4px; }
+.cell.c-empty { background: transparent; }           /* a gap in the weave */
+.cell.c-amber { background: var(--cane-dark); }       /* read, nobody able to qualify */
+.cell.c-cream { background: var(--cane); }            /* a maker may qualify */
+
+/* ---- Opened panel (calculator + events) --------------------------------- */
+.opened { flex: 1 1 520px; min-width: 260px; position: relative; border-left: 0; padding-left: 24px; }
+.opened::before {
+  content: "";
+  position: absolute;
+  top: 0; bottom: 0; left: 0;
+  width: 4px;
+  border-left: 1px solid var(--cane-dark);
+  border-right: 1px solid var(--cane-dark);
+  background-image: repeating-linear-gradient(to bottom, var(--cane) 0 5px, transparent 5px 10px);
+  background-size: 1px 100%;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+.opened h2 { font-size: 22px; margin: 0 0 12px; color: var(--ink); }
+.events { display: block; }
+.event { border-bottom: 1px solid var(--cane); padding: 12px 0; }
+.event-title { font-family: var(--mono); font-stretch: normal; text-transform: none; letter-spacing: 0; font-size: 14px; margin: 0 0 2px; color: var(--ink); }
+.event-state { font-size: 11px; color: var(--ink-quiet); margin: 0 0 4px; }
+.event-makers { font-size: 12px; color: var(--ink-quiet); margin: 0 0 6px; }
+.contracts { list-style: none; margin: 0; padding: 0; }
+.contract { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; padding: 3px 0; }
+.contract .symbol { color: var(--ink); min-width: 7ch; }
+.contract .bid, .contract .ask { color: var(--ink-quiet); font-variant-numeric: tabular-nums; min-width: 4ch; }
+.contract .none { color: var(--ink-quiet); }
+
+/* ---- Calculator --------------------------------------------------------- */
+.calc { margin: 0 0 20px; padding: 0 0 18px; }
+.calc-head { margin: 0 0 12px; }
+.calc-name { font-size: 22px; margin: 0 0 2px; color: var(--ink); }
+.calc-makers { font-size: 12px; color: var(--ink-quiet); margin: 0; }
+.calc-empty { color: var(--ink-quiet); margin: 6px 0 0; }
+
+.calc-controls { display: flex; flex-wrap: wrap; gap: 10px 24px; margin: 0 0 14px; }
+.calc-range { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-quiet); }
+.calc-range-label { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.04em; }
+.calc-range-value { color: var(--ink); font-variant-numeric: tabular-nums; min-width: 3ch; }
+
+.calc-figures { margin: 0 0 8px; }
+.calc-figure { margin: 3px 0; font-size: 15px; color: var(--ink); }
+.calc-assumption { font-size: 11px; color: var(--ink-quiet); margin: 6px 0; max-width: 60ch; }
+.calc-least { font-size: 13px; color: var(--ink-quiet); margin: 6px 0 14px; max-width: 60ch; }
+
+.calc-table-scroll { overflow-x: auto; }
+table.calc-rows { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 13px; }
+table.calc-rows th, table.calc-rows td { text-align: left; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--cane); vertical-align: top; }
+table.calc-rows thead th { font-size: 10px; color: var(--ink-quiet); font-stretch: 75%; }
+.calc-sym { color: var(--ink); }
+.calc-px, .calc-score, .calc-tied { color: var(--ink-quiet); font-variant-numeric: tabular-nums; }
+.calc-norest { color: var(--ink-quiet); }
+.calc-more { font-size: 12px; color: var(--ink-quiet); margin: 8px 0 0; }
+
+.error { color: var(--madder); margin: 0 0 14px; }
+.waiting { color: var(--ink-quiet); }
+
+/* ---- The one move: a changed value is threaded in ----------------------- *
+ * The new value slides in from the left under a 120ms clip — no rotation, no bounce. */
+@keyframes thread-in {
+  from { clip-path: inset(0 100% 0 0); transform: translateX(-0.35em); }
+  to   { clip-path: inset(0 0 0 0);   transform: translateX(0); }
+}
+.state.flip, .countdown .digits {
+  display: inline-block;
+  animation: thread-in 120ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+  .state.flip, .countdown .digits { animation: none; }
+}
+
+/* ---- Layout / breakpoints (kept exactly from flip.css) ------------------ */
+@media (max-width: 1100px) {
+  .body { flex-direction: column; }
+  .opened { order: -1; border-left: 0; padding-left: 0; padding-bottom: 16px; width: 100%; position: relative; }
+  .opened::before { /* the vertical selvedge becomes a horizontal one under the calculator-led stack */
+    top: auto; left: 0; right: 0; bottom: 0; width: auto; height: 4px;
+    border-left: 0; border-right: 0;
+    border-top: 1px solid var(--cane-dark); border-bottom: 1px solid var(--cane-dark);
+    background-image: repeating-linear-gradient(to right, var(--cane) 0 5px, transparent 5px 10px);
+    background-size: 100% 1px; background-position: left center;
+  }
+  .strip { width: 168px; max-width: 28vw; }
+}
+
+.source { font: 11px/1.4 var(--mono, monospace); color: var(--ink-quiet); margin: 0 0 8px; }
+
+/* ---- Allocator ---------------------------------------------------------- */
+.alloc { margin: 0 0 24px; padding: 0 0 20px; }
+.alloc-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; margin: 0 0 8px; }
+.alloc-name { font-stretch: 75%; letter-spacing: 0.06em; font-size: 26px; margin: 0; color: var(--ink); }
+.alloc-controls-slot { margin-left: auto; }
+.alloc-sentence { font-size: 14px; color: var(--ink-quiet); margin: 0 0 14px; max-width: 74ch; }
+.alloc-empty { color: var(--ink-quiet); margin: 0; }
+
+/* Controls: plain rectangles, 1px ink border. The primary one is filled indigo with linen text. */
+.alloc-run { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.alloc-run button, .alloc-confirm button, .alloc-running button {
+  font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.04em;
+  font-size: 13px; color: var(--ink); background: var(--linen);
+  border: 1px solid var(--ink); border-radius: 0; padding: 6px 12px; cursor: pointer;
+}
+.alloc-run > button,                      /* the lone "Read every pool" — the primary call */
+.alloc-confirm button:first-of-type {     /* "Start" */
+  background: var(--indigo); color: var(--linen); border-color: var(--indigo);
+}
+.alloc-confirm, .alloc-running { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.alloc-confirm-line, .alloc-running span { font-size: 12px; color: var(--ink-quiet); margin: 0; max-width: 52ch; }
+
+.alloc-inputs { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; margin: 0 0 14px; }
+.alloc-budget { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-quiet); }
+.alloc-budget-label { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.04em; }
+.alloc-budget input {
+  width: 110px; max-width: 40vw;
+  background: var(--linen-2); color: var(--ink);
+  border: 1px solid var(--ink); border-radius: 0; padding: 5px 7px;
+  font: inherit; font-variant-numeric: tabular-nums;
+}
+.alloc-stance { display: flex; flex-wrap: wrap; gap: 6px 18px; border: 0; margin: 0; padding: 0; font-size: 12px; color: var(--ink-quiet); }
+.alloc-stance label { display: inline-flex; align-items: center; gap: 6px; }
+.alloc-stance input { accent-color: var(--indigo); }
+
+.alloc-figures { margin: 0 0 8px; }
+.alloc-figure { font-family: var(--mono); font-size: 15px; margin: 3px 0; color: var(--ink); }
+.alloc-assumption { font-size: 11px; color: var(--ink-quiet); margin: 6px 0 14px; max-width: 60ch; }
+
+.alloc-table-scroll { overflow-x: auto; margin: 0 0 16px; }
+table.alloc-pools, table.alloc-quotes { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 13px; }
+table.alloc-pools th, table.alloc-pools td, table.alloc-quotes th, table.alloc-quotes td { text-align: left; padding: 9px 12px 9px 0; border-bottom: 1px solid var(--cane); vertical-align: middle; }
+table.alloc-pools thead th, table.alloc-quotes thead th { font-size: 10px; color: var(--ink-quiet); font-stretch: 75%; vertical-align: top; }
+table.alloc-pools thead th .gemini, table.alloc-quotes thead th .gemini { display: block; font-size: 10px; white-space: normal; max-width: 16ch; }
+.alloc-pool-name, .alloc-sym { color: var(--ink); }
+.alloc-num { color: var(--ink); font-variant-numeric: tabular-nums; }
+.alloc-more { font-size: 12px; color: var(--ink-quiet); margin: 8px 0 0; }
+
+/* ---- Share bar: a weft strand over cane warp lines ---------------------- *
+ * One pool's least share, drawn as a horizontal indigo weft passing over and under evenly spaced
+ * vertical cane warp lines. The app sets one inline style only: --share (0 to 1). Keep the numeric
+ * share beside it so nothing is conveyed by colour alone.
+ *   background  = the full warp track (all warps, pitch --p), visible outside the strand.
+ *   ::before    = the indigo weft, width = share, sitting over the warps it covers.
+ *   ::after     = every other warp redrawn in front of the weft, within the strand width, so the
+ *                 warps pass alternately in front of and behind it (plain over-under). */
+.weft {
+  --p: 10px;
+  display: inline-block;
+  vertical-align: middle;
+  position: relative;
+  width: clamp(110px, 16vw, 240px);
+  margin-right: 10px;
+  max-width: 40vw;
+  height: 16px;
+  background: repeating-linear-gradient(to right, var(--cane-dark) 0 2px, transparent 2px var(--p));
+}
+.weft::before {
+  content: "";
+  position: absolute;
+  top: 50%; left: 0;
+  transform: translateY(-50%);
+  height: 8px;
+  width: calc(var(--share, 0) * 100%);
+  background: var(--indigo);
+  z-index: 1;
+}
+.weft::after {
+  content: "";
+  position: absolute;
+  top: 50%; left: 0;
+  transform: translateY(-50%);
+  height: 8px;
+  width: calc(var(--share, 0) * 100%);
+  background: repeating-linear-gradient(to right,
+    transparent 0 var(--p),
+    var(--cane-dark) var(--p) calc(var(--p) + 2px),
+    transparent calc(var(--p) + 2px) calc(2 * var(--p)));
+  z-index: 2;
+}
+
+.alloc-leftout { margin: 4px 0 0; }
+.alloc-leftout-head { font-stretch: 75%; letter-spacing: 0.04em; font-size: 13px; color: var(--ink); margin: 0 0 4px; }
+.alloc-leftout-list { list-style: none; margin: 0; padding: 0; font-size: 12px; color: var(--ink-quiet); }
+.alloc-leftout-list li { padding: 2px 0; }
+
+/* ---- Range inputs: a cane track with an indigo thumb -------------------- */
+.calc-range input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 140px;
+  max-width: 40vw;
+  height: 16px;
+  background: transparent;
+  cursor: pointer;
+}
+.calc-range input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px; background: var(--cane); border: 1px solid var(--cane-dark);
+}
+.calc-range input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none;
+  width: 14px; height: 14px; margin-top: -6px;
+  background: var(--indigo); border: 1px solid var(--ink); border-radius: 0;
+}
+.calc-range input[type="range"]::-moz-range-track {
+  height: 4px; background: var(--cane); border: 1px solid var(--cane-dark);
+}
+.calc-range input[type="range"]::-moz-range-thumb {
+  width: 14px; height: 14px; background: var(--indigo); border: 1px solid var(--ink); border-radius: 0;
+}
+
+/* The allocator's tables scroll sideways in their own container under 800px; at 400px its head,
+   inputs and controls stack (the flex rows already wrap). */
+@media (max-width: 400px) {
+  .alloc-controls-slot { margin-left: 0; }
+}
+
+/* The countdown changes every second: threading it in each time left the digit unseen much of the time (seen 2026-11-18). Only a changed cell moves. */
+.countdown .digits { animation: none; }
+
+/* ---- Polish pass, 2026-11-18 -------------------------------------------- */
+
+/* Archivo ships here at one weight: nothing asks the browser to fake a bolder one. */
+h1, h2, h3, th { font-weight: 400; }
+.gemini, .head-note { font-weight: 400; }
+
+/* The parts the browser draws take the palette too. */
+::selection { background: var(--indigo); color: var(--linen); }
+html { scrollbar-color: var(--cane-dark) var(--linen-2); accent-color: var(--indigo); caret-color: var(--indigo); }
+
+/* The allocator leads: its controls and figures on the left, what it placed on the right. */
+.alloc-side, .alloc-main { min-width: 0; }
+@media (min-width: 1100px) {
+  .alloc-grid { display: grid; grid-template-columns: minmax(300px, 400px) minmax(0, 1fr); column-gap: 48px; align-items: start; }
+}
+.alloc-figures { margin: 0 0 10px; border-top: 1px solid var(--cane); }
+.alloc-figure { display: block; padding: 7px 0; margin: 0; border-bottom: 1px solid var(--cane); font-size: 14px; }
+/* The least credit is the figure the page exists for: ours, so indigo, and a step larger. */
+.alloc-figure:nth-child(3) { font-size: 19px; color: var(--indigo); padding: 10px 0; }
+.alloc-figure .gemini { display: block; font-size: 11px; margin-top: 2px; }
+
+/* The weft is threaded across when the allocation changes: the one authored move on this page. */
+.weft::before, .weft::after { transition: width 520ms cubic-bezier(0.16, 1, 0.3, 1); }
+@media (prefers-reduced-motion: reduce) { .weft::before, .weft::after { transition: none; } }
+
+/* Controls: every state drawn. */
+.alloc-run button, .alloc-confirm button, .alloc-running button { transition: background-color 140ms ease-out, color 140ms ease-out; }
+.alloc-run button:hover, .alloc-confirm button:hover, .alloc-running button:hover { background: var(--ink); color: var(--linen); }
+.alloc-run > button:hover, .alloc-confirm button:first-of-type:hover { background: #22327a; border-color: #22327a; color: var(--linen); }
+.alloc-run button:active, .alloc-confirm button:active, .alloc-running button:active { transform: translateY(1px); }
+.alloc-budget input:hover { border-color: var(--indigo); }
+.alloc-running span { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* A pool row answers the pointer, and its name is the control. */
+table.pools tbody tr { transition: background-color 120ms ease-out; }
+table.pools tbody tr:hover { background: var(--linen-2); }
+.pool-name button:hover { color: var(--indigo); text-decoration: underline; text-underline-offset: 3px; }
+table.pools tbody tr.open { background: var(--linen-2); }
+table.pools th:first-child, table.pools td:first-child { padding-left: 8px; }
+table.pools thead th { position: sticky; top: 0; background: var(--linen); z-index: 1; vertical-align: bottom; }
+
+/* The replayed answers are old by design: their age is stated once at the top, not in red on every row. */
+.board.kept td.age.stale { color: var(--ink-quiet); }
+
+/* An opened pool stays in view beside the list however far down the list was opened, and the list
+   gives it room by dropping its two widest columns. */
+@media (min-width: 1101px) {
+  .opened { position: sticky; top: 12px; max-height: calc(100vh - 24px); overflow-y: auto; overscroll-behavior: contain; }
+  .body:has(.opened) table.pools th:nth-child(n+5), .body:has(.opened) table.pools td:nth-child(n+5) { display: none; }
+  .body:has(.opened) .table-scroll { flex: 0 1 560px; }
+  .body:has(.opened) .opened { flex: 1 1 600px; }
+}
+.figure { max-width: 96ch; text-wrap: pretty; }
+
+/* The calculator's figures read as the allocator's do. */
+.calc-figures { margin: 0 0 10px; border-top: 1px solid var(--cane); }
+.calc-figure { padding: 6px 0; margin: 0; border-bottom: 1px solid var(--cane); font-size: 14px; }
+.calc-range input[type="range"]:hover::-webkit-slider-thumb { background: #22327a; }
+
+.alloc-under { font-size: 12px; color: var(--madder); margin: 6px 0; max-width: 60ch; }
+
+.screen-foot { margin: 28px 0 0; padding: 0 0 24px; font-size: 11px; line-height: 1.5; color: var(--ink-quiet); max-width: 110ch; }
+.calc-least-note { display: block; margin-top: 4px; }

@@ -1,0 +1,15 @@
+{
+  "maxOthersSpreadCents": 15,
+  "tendedWithinMs": 86400000,
+  "stillCents": 3,
+  "stillOverMs": 3600000,
+  "pullBeforeStartMs": 21600000,
+  "capPerMarketMicros": 60000000,
+  "drawMicros": 7500000000,
+  "bondMicros": 5000000000,
+  "reachedMarginCents": 1,
+  "readEveryMs": 300000,
+  "sweepsADay": 4,
+  "sweepApartMs": 1200,
+  "noSizeBeforeMs": 1794895200000
+}

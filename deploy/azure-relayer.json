@@ -1,0 +1,146 @@
+{
+ "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+ "contentVersion": "1.0.0.0",
+ "parameters": {
+  "suffix": {
+   "type": "string"
+  },
+  "location": {
+   "type": "string",
+   "defaultValue": "westus"
+  },
+  "name": {
+   "type": "string",
+   "defaultValue": "vault-relayer"
+  },
+  "relayerImage": {
+   "type": "string"
+  },
+  "frontImage": {
+   "type": "string"
+  },
+  "label": {
+   "type": "string",
+   "defaultValue": "basket-ubc"
+  }
+ },
+ "variables": {
+  "registry": "[concat('vaultengine', parameters('suffix'), '.azurecr.io')]",
+  "storage": "[concat('vaultdata', parameters('suffix'))]",
+  "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'vault-engine-id')]",
+  "site": "[concat(parameters('label'), '.', parameters('location'), '.azurecontainer.io')]"
+ },
+ "resources": [
+  {
+   "type": "Microsoft.ContainerInstance/containerGroups",
+   "apiVersion": "2023-05-01",
+   "name": "[parameters('name')]",
+   "location": "[parameters('location')]",
+   "identity": {
+    "type": "UserAssigned",
+    "userAssignedIdentities": {
+     "[variables('identity')]": {}
+    }
+   },
+   "properties": {
+    "osType": "Linux",
+    "restartPolicy": "Always",
+    "sku": "Standard",
+    "imageRegistryCredentials": [
+     {
+      "server": "[variables('registry')]",
+      "identity": "[variables('identity')]"
+     }
+    ],
+    "ipAddress": {
+     "type": "Public",
+     "dnsNameLabel": "[parameters('label')]",
+     "ports": [
+      {
+       "protocol": "TCP",
+       "port": 80
+      },
+      {
+       "protocol": "TCP",
+       "port": 443
+      }
+     ]
+    },
+    "containers": [
+     {
+      "name": "relayer",
+      "properties": {
+       "image": "[parameters('relayerImage')]",
+       "resources": {
+        "requests": {
+         "cpu": 0.5,
+         "memoryInGB": 1.0
+        }
+       },
+       "volumeMounts": [
+        {
+         "name": "forward",
+         "mountPath": "/data"
+        }
+       ]
+      }
+     },
+     {
+      "name": "front",
+      "properties": {
+       "image": "[parameters('frontImage')]",
+       "resources": {
+        "requests": {
+         "cpu": 0.5,
+         "memoryInGB": 0.5
+        }
+       },
+       "ports": [
+        {
+         "protocol": "TCP",
+         "port": 80
+        },
+        {
+         "protocol": "TCP",
+         "port": 443
+        }
+       ],
+       "environmentVariables": [
+        {
+         "name": "SITE_ADDRESS",
+         "value": "[variables('site')]"
+        },
+        {
+         "name": "XDG_DATA_HOME",
+         "value": "/data/front"
+        }
+       ],
+       "volumeMounts": [
+        {
+         "name": "forward",
+         "mountPath": "/data"
+        }
+       ]
+      }
+     }
+    ],
+    "volumes": [
+     {
+      "name": "forward",
+      "azureFile": {
+       "shareName": "forward",
+       "storageAccountName": "[variables('storage')]",
+       "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storage')), '2023-05-01').keys[0].value]"
+      }
+     }
+    ]
+   }
+  }
+ ],
+ "outputs": {
+  "site": {
+   "type": "string",
+   "value": "[variables('site')]"
+  }
+ }
+}

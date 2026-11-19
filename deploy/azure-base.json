@@ -1,0 +1,89 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "suffix": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "westus2"
+    }
+  },
+  "variables": {
+    "registry": "[concat('vaultengine', parameters('suffix'))]",
+    "storage": "[concat('vaultdata', parameters('suffix'))]",
+    "identity": "vault-engine-id",
+    "acrPull": "[subscriptionResourceId('Microsoft.Authorization/roleDefinitions', '7f951dda-4ed3-4680-a7ca-43fe172d538d')]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.ContainerRegistry/registries",
+      "apiVersion": "2023-07-01",
+      "name": "[variables('registry')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Basic"
+      },
+      "properties": {
+        "adminUserEnabled": false
+      }
+    },
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2023-01-31",
+      "name": "[variables('identity')]",
+      "location": "[parameters('location')]"
+    },
+    {
+      "type": "Microsoft.Authorization/roleAssignments",
+      "apiVersion": "2022-04-01",
+      "scope": "[format('Microsoft.ContainerRegistry/registries/{0}', variables('registry'))]",
+      "name": "[guid(variables('registry'), variables('identity'), 'acrpull')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.ContainerRegistry/registries', variables('registry'))]",
+        "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identity'))]"
+      ],
+      "properties": {
+        "roleDefinitionId": "[variables('acrPull')]",
+        "principalId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', variables('identity')), '2023-01-31').principalId]",
+        "principalType": "ServicePrincipal"
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts",
+      "apiVersion": "2023-05-01",
+      "name": "[variables('storage')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard_LRS"
+      },
+      "kind": "StorageV2",
+      "properties": {
+        "minimumTlsVersion": "TLS1_2",
+        "allowBlobPublicAccess": false
+      }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+      "apiVersion": "2023-05-01",
+      "name": "[concat(variables('storage'), '/default/forward')]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storage'))]"
+      ],
+      "properties": {
+        "shareQuota": 10
+      }
+    }
+  ],
+  "outputs": {
+    "registry": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.ContainerRegistry/registries', variables('registry')), '2023-07-01').loginServer]"
+    },
+    "storage": {
+      "type": "string",
+      "value": "[variables('storage')]"
+    }
+  }
+}

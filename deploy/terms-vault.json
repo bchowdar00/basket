@@ -1,0 +1,10 @@
+{
+  "name": "vault",
+  "operator": "0xa4A2dD245bFCA965E1FDcb4B8Bf218fD6Bb2fd61",
+  "drawBondHalves": 3,
+  "drawVaultBps": 5000,
+  "gainBps": 2000,
+  "epochSeconds": 172800,
+  "capPerMarketMicros": 60000000,
+  "depositCapMicros": 100000000000
+}

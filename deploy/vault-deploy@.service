@@ -1,0 +1,31 @@
+# The vault: sends one vault's creation to Arc Testnet, once.
+#
+# A person starts this by hand, once for each vault:
+#   sudo systemctl start vault-deploy@vault
+#   sudo systemctl start vault-deploy@stage
+# No session does. It loads the deploy key and nothing else. What the vault is (its operator and
+# its seven figures) is in deploy/terms-<name>.json; the operator's address is written into that
+# file, before this unit is installed, from what make-keys.mjs printed.
+[Unit]
+Description=The vault: deploy BondedVault "%i" to Arc Testnet (one shot)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=vault
+Group=vault
+WorkingDirectory=/opt/vault
+EnvironmentFile=/etc/vault/deploy.env
+Environment=VAULT_CHAIN_ID=5042002
+Environment=VAULT_RPC=https://rpc.testnet.arc.io
+Environment=VAULT_USDC=0x3600000000000000000000000000000000000000
+Environment=VAULT_TERMS=/opt/vault/deploy/terms-%i.json
+Environment=VAULT_BUNDLE=/opt/vault/deploy/bundle.json
+Environment=VAULT_ADDRESSES=/var/lib/vault/addresses.json
+ExecStart=/usr/local/bin/node contracts/scripts/deploy.ts
+StateDirectory=vault
+NoNewPrivileges=yes
+ProtectSystem=strict
+ProtectHome=yes
+PrivateTmp=yes

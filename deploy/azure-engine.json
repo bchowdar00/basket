@@ -1,0 +1,32 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "suffix": { "type": "string" },
+    "location": { "type": "string", "defaultValue": "westus" },
+    "name": { "type": "string", "defaultValue": "vault-engine" },
+    "image": { "type": "string" },
+    "command": { "type": "array", "defaultValue": [] },
+    "restart": { "type": "string", "defaultValue": "Always" }
+  },
+  "variables": {
+    "registry": "[concat('vaultengine', parameters('suffix'), '.azurecr.io')]",
+    "storage": "[concat('vaultdata', parameters('suffix'))]",
+    "identity": "[resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', 'vault-engine-id')]"
+  },
+  "resources": [
+    { "type": "Microsoft.ContainerInstance/containerGroups", "apiVersion": "2023-05-01", "name": "[parameters('name')]", "location": "[parameters('location')]",
+      "identity": { "type": "UserAssigned", "userAssignedIdentities": { "[variables('identity')]": {} } },
+      "properties": {
+        "osType": "Linux", "restartPolicy": "[parameters('restart')]", "sku": "Standard",
+        "imageRegistryCredentials": [ { "server": "[variables('registry')]", "identity": "[variables('identity')]" } ],
+        "containers": [ { "name": "engine", "properties": {
+          "image": "[parameters('image')]",
+          "command": "[if(empty(parameters('command')), null(), parameters('command'))]",
+          "resources": { "requests": { "cpu": 1, "memoryInGB": 1.5 } },
+          "environmentVariables": [ { "name": "VAULT_FORWARD_DIR", "value": "/data/forward" } ],
+          "volumeMounts": [ { "name": "forward", "mountPath": "/data" } ] } } ],
+        "volumes": [ { "name": "forward", "azureFile": { "shareName": "forward", "storageAccountName": "[variables('storage')]", "storageAccountKey": "[listKeys(resourceId('Microsoft.Storage/storageAccounts', variables('storage')), '2023-05-01').keys[0].value]" } } ]
+      } }
+  ]
+}

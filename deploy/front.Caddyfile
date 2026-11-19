@@ -1,0 +1,24 @@
+# The web server in front of the relayer: serves the phone pages and passes /relay/* to the relayer
+# on this host, adding the caller's network address (X-Forwarded-For, which Caddy sets itself and
+# does not take from the caller). With a host name in SITE_ADDRESS it gets its own certificate.
+{$SITE_ADDRESS} {
+	encode gzip
+	header {
+		X-Content-Type-Options nosniff
+		Referrer-Policy no-referrer
+		X-Frame-Options DENY
+		Content-Security-Policy "default-src 'self'; connect-src 'self' https://rpc.testnet.arc.io; style-src 'self' 'unsafe-inline'; img-src 'self' data:; frame-ancestors 'none'; base-uri 'none'; form-action 'none'"
+	}
+	handle_path /relay/* {
+		reverse_proxy 127.0.0.1:8788
+	}
+	handle {
+		root * /srv
+		rewrite / /vault.html
+		# The page itself is asked for again each time, so a new build is seen at once; its files carry
+		# their content's hash in their names and can be kept.
+		@page path / /vault.html
+		header @page Cache-Control no-cache
+		file_server
+	}
+}

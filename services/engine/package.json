@@ -1,0 +1,16 @@
+{
+  "name": "@app/engine",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "scripts": {
+    "test": "node --test test/"
+  },
+  "dependencies": {
+    "@app/rule": "0.1.0",
+    "@app/score": "0.1.0",
+    "@app/ledger": "0.1.0",
+    "viem": "2.57.19"
+  }
+}

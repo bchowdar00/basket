@@ -1,0 +1,168 @@
+/* The departure board's layout and its one move. At each snapshot only the cells whose state
+   changed flip like a split-flap character, and the countdown's digits flip each second; nothing
+   else moves. Under reduced motion the change is a plain swap. No board bezel, no flap texture on
+   still cells, no gradient, no rounded card. */
+
+.board { padding: 20px clamp(16px, 4vw, 40px) 48px; max-width: 1400px; margin: 0 auto; }
+
+.topbar { border-bottom: 1px solid var(--line); padding-bottom: 16px; margin-bottom: 20px; }
+.name { font-size: clamp(28px, 6vw, 52px); font-stretch: 62.5%; margin: 0 0 4px; }
+
+.countdown { margin: 0 0 14px; font-size: 20px; color: var(--amber); }
+.countdown .digits { display: inline-block; min-width: 1.4em; font-weight: 600; }
+.count-label { color: var(--cream-dim); font-size: 12px; }
+
+.figure { margin: 2px 0; font-size: 15px; max-width: 74ch; }
+.figure.f1 { color: var(--cream); font-size: 17px; margin-top: 10px; }
+.figure.f2, .figure.f3, .figure.gap { color: var(--cream-dim); }
+.figure .live-note { color: var(--cream-dim); }
+.figure.gap { margin-top: 8px; }
+
+.body { display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; }
+.table-scroll { flex: 1 1 560px; min-width: 0; overflow-x: auto; }
+
+table.pools { width: 100%; border-collapse: collapse; white-space: nowrap; }
+table.pools th, table.pools td { text-align: left; padding: 9px 14px 9px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+thead th { font-size: 11px; color: var(--cream-dim); font-stretch: 75%; }
+thead th .gemini { display: block; font-size: 10px; }
+thead th .head-note { display: block; font-size: 10px; color: var(--cream-dim); font-stretch: normal; text-transform: none; letter-spacing: 0; }
+/* The header notes wrap (the table is nowrap) so a long note never blows its column out past the
+   edge; the figure cells below stay on one line. */
+thead th .gemini, thead th .head-note { white-space: normal; max-width: 16ch; }
+td.makers { color: var(--cream); font-variant-numeric: tabular-nums; }
+
+.pool-name button { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.04em; color: var(--cream); font-size: 15px; }
+tr.open .pool-name button { color: var(--amber); }
+
+td.state { color: var(--cream); }
+td.state.s-none-prices { color: var(--amber); }
+td.state.s-none-sizes { color: var(--cream); }
+td.state.s-may { color: var(--cream-dim); }
+
+td.money { font-variant-numeric: tabular-nums; }
+td.age { color: var(--cream-dim); font-variant-numeric: tabular-nums; }
+td.age.stale { color: var(--red); }
+
+.strip { display: inline-grid; grid-template-columns: repeat(24, 1fr); grid-auto-rows: 8px; gap: 1px; width: 240px; max-width: 48vw; }
+.cell { display: block; width: 100%; height: 8px; }
+.cell.c-empty { background: var(--ground-2); }
+.cell.c-amber { background: var(--amber); }
+.cell.c-cream { background: var(--cream); }
+
+.opened { flex: 1 1 520px; min-width: 260px; border-left: 1px solid var(--line); padding-left: 24px; }
+.opened h2 { font-size: 20px; margin: 0 0 12px; color: var(--amber); }
+.event { border-bottom: 1px solid var(--line); padding: 10px 0; }
+.event-title { font-family: var(--mono); font-stretch: normal; text-transform: none; letter-spacing: 0; font-size: 14px; margin: 0 0 2px; }
+.event-state { font-size: 11px; color: var(--cream-dim); margin: 0 0 4px; }
+.event-makers { font-size: 12px; color: var(--cream-dim); margin: 0 0 6px; }
+.contracts { list-style: none; margin: 0; padding: 0; }
+.contract { display: flex; gap: 12px; flex-wrap: wrap; font-size: 13px; padding: 2px 0; }
+.contract .symbol { color: var(--cream); min-width: 7ch; }
+.contract .bid, .contract .ask { color: var(--cream-dim); font-variant-numeric: tabular-nums; min-width: 4ch; }
+.contract .none { color: var(--amber); }
+
+/* The calculator: the lead of an opened pool's panel, above the events list. Same ground, type and
+   palette as the board; amber only for the reward figures, red nowhere. */
+.calc { margin: 0 0 20px; padding: 0 0 18px; border-bottom: 1px solid var(--line); }
+.calc-head { margin: 0 0 12px; }
+.calc-name { font-size: 20px; margin: 0 0 2px; color: var(--amber); }
+.calc-makers { font-size: 12px; color: var(--cream-dim); margin: 0; }
+.calc-empty { color: var(--cream-dim); margin: 6px 0 0; }
+
+.calc-controls { display: flex; flex-wrap: wrap; gap: 10px 24px; margin: 0 0 14px; }
+.calc-range { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--cream-dim); }
+.calc-range-label { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.04em; }
+.calc-range input { accent-color: var(--amber); width: 140px; max-width: 40vw; }
+.calc-range-value { color: var(--cream); font-variant-numeric: tabular-nums; min-width: 3ch; }
+
+.calc-figures { margin: 0 0 8px; }
+.calc-figure { margin: 2px 0; font-size: 15px; }
+.calc-assumption { font-size: 11px; color: var(--cream-dim); margin: 6px 0; max-width: 60ch; }
+.calc-least { font-size: 13px; color: var(--cream-dim); margin: 6px 0 14px; max-width: 60ch; }
+
+.calc-table-scroll { overflow-x: auto; }
+table.calc-rows { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 13px; }
+table.calc-rows th, table.calc-rows td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.calc-rows thead th { font-size: 10px; color: var(--cream-dim); font-stretch: 75%; }
+.calc-sym { color: var(--cream); }
+.calc-px, .calc-score, .calc-tied { color: var(--cream-dim); font-variant-numeric: tabular-nums; }
+.calc-norest { color: var(--cream-dim); }
+.calc-more { font-size: 12px; color: var(--cream-dim); margin: 8px 0 0; }
+
+.error { color: var(--red); margin: 0 0 14px; }
+.waiting { color: var(--cream-dim); }
+
+@keyframes flap {
+  0% { transform: rotateX(-90deg); opacity: 0; }
+  60% { transform: rotateX(12deg); opacity: 1; }
+  100% { transform: rotateX(0); opacity: 1; }
+}
+
+.state.flip, .countdown .digits {
+  display: inline-block;
+  transform-origin: center top;
+  backface-visibility: hidden;
+  animation: flap 190ms ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .state.flip, .countdown .digits { animation: none; }
+}
+
+/* Under 1100px the week strip (and the opened panel beside the table) would push the money, makers
+   and age columns off the right. The opened panel, calculator first, stacks under the full-width
+   table; the table scrolls on its own (`.table-scroll` above); and the strip is capped so that at
+   800px the pool, state, dollars, makers and age columns all show without scrolling. */
+@media (max-width: 1100px) {
+  .body { flex-direction: column; }
+  .opened { order: -1; border-left: 0; border-bottom: 1px solid var(--line); padding-left: 0; padding-bottom: 16px; width: 100%; } /* the calculator leads: it stacks above the table */
+  .strip { width: 168px; max-width: 28vw; }
+}
+
+.source { font: 11px/1.4 var(--mono, monospace); opacity: .6; margin: 0 0 8px; }
+
+/* The allocator: the lead of the page, above the board. Same ground, type and palette; amber only
+   for the heading, the reward figures and the one control. No new colour, gradient or rounded card. */
+.alloc { margin: 0 0 24px; padding: 0 0 20px; border-bottom: 1px solid var(--line); }
+.alloc-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 20px; margin: 0 0 8px; }
+.alloc-name { font-family: var(--cond); font-stretch: 75%; letter-spacing: 0.06em; font-size: 22px; margin: 0; color: var(--amber); }
+.alloc-controls-slot { margin-left: auto; }
+.alloc-sentence { font-size: 14px; color: var(--cream-dim); margin: 0 0 14px; max-width: 74ch; }
+.alloc-empty { color: var(--cream-dim); margin: 0; }
+
+.alloc-run { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.alloc-run button { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.04em; font-size: 13px; color: var(--amber); background: none; border: 1px solid var(--line); padding: 4px 10px; cursor: pointer; }
+.alloc-confirm, .alloc-running { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.alloc-confirm-line, .alloc-running span { font-size: 12px; color: var(--cream-dim); margin: 0; max-width: 52ch; }
+
+.alloc-inputs { display: flex; flex-wrap: wrap; gap: 12px 28px; align-items: center; margin: 0 0 14px; }
+.alloc-budget { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--cream-dim); }
+.alloc-budget-label { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.04em; }
+.alloc-budget input { width: 110px; max-width: 40vw; background: var(--ground-2); color: var(--cream); border: 1px solid var(--line); padding: 4px 6px; font: inherit; font-variant-numeric: tabular-nums; }
+.alloc-stance { display: flex; flex-wrap: wrap; gap: 6px 18px; border: 0; margin: 0; padding: 0; font-size: 12px; color: var(--cream-dim); }
+.alloc-stance label { display: inline-flex; align-items: center; gap: 6px; }
+.alloc-stance input { accent-color: var(--amber); }
+
+.alloc-figures { margin: 0 0 8px; }
+.alloc-figure { font-family: var(--mono); font-size: 15px; margin: 2px 0; }
+.alloc-assumption { font-size: 11px; color: var(--cream-dim); margin: 6px 0 14px; max-width: 60ch; }
+
+.alloc-table-scroll { overflow-x: auto; margin: 0 0 16px; }
+table.alloc-pools, table.alloc-quotes { width: 100%; border-collapse: collapse; white-space: nowrap; font-size: 13px; }
+table.alloc-pools th, table.alloc-pools td, table.alloc-quotes th, table.alloc-quotes td { text-align: left; padding: 6px 12px 6px 0; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.alloc-pools thead th, table.alloc-quotes thead th { font-size: 10px; color: var(--cream-dim); font-stretch: 75%; }
+table.alloc-pools thead th .gemini, table.alloc-quotes thead th .gemini { display: block; font-size: 10px; white-space: normal; max-width: 16ch; }
+.alloc-pool-name, .alloc-sym { color: var(--cream); }
+.alloc-num { color: var(--cream-dim); font-variant-numeric: tabular-nums; }
+.alloc-more { font-size: 12px; color: var(--cream-dim); margin: 8px 0 0; }
+
+.alloc-leftout { margin: 4px 0 0; }
+.alloc-leftout-head { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.04em; font-size: 13px; color: var(--cream); margin: 0 0 4px; }
+.alloc-leftout-list { list-style: none; margin: 0; padding: 0; font-size: 12px; color: var(--cream-dim); }
+.alloc-leftout-list li { padding: 2px 0; }
+
+/* The allocator's tables scroll sideways in their own container under 800px; at 400px its head,
+   inputs and controls stack (the flex rows already wrap). */
+@media (max-width: 400px) {
+  .alloc-controls-slot { margin-left: 0; }
+}

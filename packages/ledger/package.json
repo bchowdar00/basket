@@ -1,0 +1,17 @@
+{
+  "name": "@app/ledger",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./chain": "./src/chain.ts"
+  },
+  "scripts": {
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@app/rule": "0.1.0",
+    "@app/score": "0.1.0"
+  }
+}
