@@ -15,6 +15,6 @@ USER node
 ENV VAULT_CHAIN_ID=5042002 VAULT_RPC=https://rpc.testnet.arc.io VAULT_USDC=0x3600000000000000000000000000000000000000 \
     VAULT_KEY_VAULT=https://vaultkeys277599.vault.azure.net VAULT_KEY_SECRET=relayer-key VAULT_IDENTITY_CLIENT_ID=3f41f816-a7d1-4c81-9cf3-d91de57e6986 \
     VAULT_ADDRESSES=/data/deploy/addresses.json VAULT_DB=/data/relayer/relayer.db VAULT_PORT=8788 \
-    VAULT_HANDOUT_DEPOSIT=1000000 VAULT_HANDOUT_FEES=250000 VAULT_HANDOUTS_MOST=30
+    VAULT_HANDOUT_DEPOSIT=1000000 VAULT_HANDOUT_FEES=250000 VAULT_HANDOUTS_MOST=100
 # The database's folder on the share is made if it is not there.
 CMD ["sh", "-c", "mkdir -p \"$(dirname \"$VAULT_DB\")\" && exec node services/relayer/src/main.ts"]

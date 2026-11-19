@@ -5,7 +5,7 @@ FROM node:26.13.1-slim
 WORKDIR /app
 COPY --from=mods node_modules node_modules
 COPY contracts/scripts/deploy.ts contracts/scripts/deploy.ts
-COPY deploy/bundle.json deploy/terms-vault.json deploy/terms-stage.json deploy/terms-stage2.json deploy/terms-stage3.json deploy/terms-stage4.json deploy/
+COPY deploy/bundle.json deploy/terms-vault.json deploy/terms-stage.json deploy/terms-stage2.json deploy/terms-stage3.json deploy/terms-stage4.json deploy/terms-stage5.json deploy/
 COPY deploy/deploy-start.mjs deploy/deploy-start.mjs
 RUN printf '{"type":"module"}\n' > package.json
 USER node

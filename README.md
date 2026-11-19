@@ -4,7 +4,7 @@ Basket has two halves. The first is an operator's screen on Gemini Prediction Ma
 
 What it is not: it is not a trading bot. It places no order on any exchange and holds no exchange key. The operator is simulated. All money on chain is test USDC on Arc's test network and has no value, and every round in the demo closes with a simulated result.
 
-- **Phone page (the vault, from a phone):** https://basket-ubc.westus.azurecontainer.io/
+- **Phone page (the vault, from a phone):** https://basket-ubc.westus.azurecontainer.io/ No app or wallet is needed: add funds, allow, deposit. A demo round opens on this vault by itself about every ten minutes and closes about thirty seconds later with a small simulated gain.
 - **Video:** [link to be supplied]
 
 ## 1. What it does
@@ -89,15 +89,16 @@ npm test -w contracts
 - Chain id `5042002`, RPC `https://rpc.testnet.arc.io`, explorer `https://explorer.testnet.arc.io`.
 - USDC: `0x3600000000000000000000000000000000000000`.
 - Multicall3, used by the phone page to read in one call: `0xcA11bde05977b3631167028862bE2a173976CA11`.
-- `contracts/contracts/BondedVault.sol`, SHA-256 `184a36fa862e51bf99cea416941a2c9a1d7f16177cf58afe7ff406a5e4570662`. All three deployments are this source.
+- `contracts/contracts/BondedVault.sol`, SHA-256 `184a36fa862e51bf99cea416941a2c9a1d7f16177cf58afe7ff406a5e4570662`. Every deployment below is this source.
 
 | `BondedVault` | Address | Terms |
 |---|---|---|
 | Main vault: two-day round; the engine commits its reads here | `0x41b72ae9a2e352cbfb77950715606f06f5e4d327` | `deploy/terms-vault.json` |
 | Stage vault: one-minute round; the one the phone page opens | `0x1781eaafe2b674056f64a7daee1fb77fd8e85b8b` | `deploy/terms-stage.json` |
 | Second stage vault: one-minute round; in default since a rehearsal on 2026-11-18, closed for good | `0x7653ac79ed456c76eb445482ebe832b15286bb94` | `deploy/terms-stage2.json` |
-| Fourth stage vault: one-minute round; the default shown in the demo video was declared here on 2026-11-19, closed for good | `0x493aa0b9b855fe4b06769e8461ee807c9815d6b0` | `deploy/terms-stage4.json` |
-| Third stage vault: one-minute round; a round left open past its deadline on 2026-11-19 in a failed take, not defaulted | `0x6dacabf26d0af405b4603600bc6d622e9d540ffd` | `deploy/terms-stage3.json` |
+| Fourth stage vault: one-minute round; a default was declared here from the phone page on 2026-11-19, closed for good | `0x493aa0b9b855fe4b06769e8461ee807c9815d6b0` | `deploy/terms-stage4.json` |
+| Third stage vault: one-minute round; a round left open past its deadline since 2026-11-19, not defaulted | `0x6dacabf26d0af405b4603600bc6d622e9d540ffd` | `deploy/terms-stage3.json` |
+| Fifth stage vault: one-minute round; bonded and unused, a spare (`?vault=stage5` on the phone page) | `0x813570cd78318372eca5e20ae876daa8c319d798` | `deploy/terms-stage5.json` |
 
 The engine's rule hash, named on chain before its first read: `35e939081fa8e0b4ef01814c6437d1cb9a009c977c57bc390be004488ad86ea8`. `node scripts/rule-hash.mjs` works it out again from this repository.
 
