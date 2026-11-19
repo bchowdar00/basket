@@ -169,7 +169,7 @@ test("no sentence breaks the house word rules", () => {
   for (const inp of inputs) {
     // The banned phrases are enforced across every file of web/ by src/words.test.ts, so they are
     // not restated here as literals (that would trip that scanner on this test file). Here: no
-    // bare "USDC", nothing earned, and (his word of 2026-11-19) no "test dollars" or "simulated"
+    // bare "USDC", nothing earned, and (decided 2026-11-19) no "test dollars" or "simulated"
     // in a step: the page says both once, at its foot.
     const s = nextStep(inp).sentence;
     expect(s, s).not.toMatch(/\bUSDC\b/);

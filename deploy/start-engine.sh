@@ -1,6 +1,6 @@
 #!/bin/zsh
 # Starts the forward run on this Mac, beside the recorder, kept awake by caffeinate (plan 1.3, T07).
-# Run only on his word in his chat: it makes public, read-only requests to the exchange every five
+# Run only by the team's decision: it makes public, read-only requests to the exchange every five
 # minutes. A pass that stops (a crash, a hash that no longer matches) is started again after a
 # minute, and each start and stop is written to the run's own log.
 set -u

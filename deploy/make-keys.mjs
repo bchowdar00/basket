@@ -1,6 +1,6 @@
 // Makes the two test keys, the deployer's and the operator's, straight into the Key Vault.
 //
-// His yes, 2026-11-17 ("Yes, make them"). Each key is made in this process, sent over TLS to the
+// Run once, on 2026-11-17, by the team's decision. Each key is made in this process, sent over TLS to the
 // Key Vault and read back to check that it gives the same address. It is never printed, never
 // written to a file and never put in a command's arguments; only the two addresses are printed.
 // A name already in the vault is refused, so a second run cannot replace a key that was funded.

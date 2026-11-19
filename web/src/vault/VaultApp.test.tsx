@@ -51,7 +51,7 @@ function render(d: VaultData, deadlinePassed = false): string {
   ));
 }
 
-// His word of 2026-11-19: the page reads as a product; what the money is stands once, small, at the foot.
+// Decided 2026-11-19: the page reads as a product; what the money is stands once, small, at the foot.
 test("the note that the money is test money is on the page once, at its foot, and not at its top", () => {
   const html = render(data());
   expect(html.split("Balances are test USDC with no real value").length).toBe(2);

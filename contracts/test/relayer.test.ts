@@ -78,7 +78,7 @@ describe("the relayer against BondedVault on the local chain", () => {
     assert.ok((await w.balance(phone.address)) > before, "the asked withdrawal is claimed and paid");
     assert.equal(await w.vault.read.sharesOf([phone.address]), 0n);
 
-    // The hub's point 1 ("deposit all"): a deposit of the phone's WHOLE balance dry-runs fine here,
+    // Review point 1 ("deposit all"): a deposit of the phone's WHOLE balance dry-runs fine here,
     // because the local chain's fee is not paid in the token. The relayer therefore cannot keep a
     // phone from depositing its fee money too; capping a deposit under the balance is the page's job
     // in T14 and is recorded here only, not enforced.

@@ -4,7 +4,7 @@
 // engine's state, the lists one pass read, and the time. Every figure comes from the three libraries.
 // The engine's state is plain JSON, so a restart reads it back and carries on from the same chain.
 //
-// The co-lead's rulings (plan 1.3-E), each set against the quote where the reads leave a doubt:
+// The reviewer's rulings (plan 1.3-E), each set against the quote where the reads leave a doubt:
 // - a standing quote whose contract is gone from the list is counted filled on its worse side;
 // - a filled position stays tied up for the rest of the run (the list gives no result to free it);
 // - a contract's log starts at the engine's own first read, so nothing is quoted in the first hour;

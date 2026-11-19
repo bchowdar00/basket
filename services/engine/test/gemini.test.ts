@@ -597,7 +597,7 @@ test("31 settings that are not an object are a BadAnswer", async () => {
 });
 
 test("32 a slow answer that is a 429 still holds the call that was waiting", async () => {
-  // The lead's finding on the fix: the pause was recorded after the queue's turn had been given up,
+  // A review finding on the fix: the pause was recorded after the queue's turn had been given up,
   // so when the answer took longer than APART_MS the waiting call saw nothing to wait for and was
   // sent at once. Here every answer takes 2,000 on the made-up clock and arrives on a later tick.
   let now = 0;

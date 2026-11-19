@@ -12,3 +12,4 @@ dist-public/
 # The working runbook and a design draft: kept on disk, not in the repository.
 deploy/AZURE.md
 theme-draft/
+.DS_Store

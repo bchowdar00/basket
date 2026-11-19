@@ -1,5 +1,5 @@
-// The engine's start inside its container on Azure (plan 1.3, T18's host part). Run only on his
-// word. The container's platform starts it again if it stops.
+// The engine's start inside its container on Azure (plan 1.3, T18's host part). Run only by the
+// team's decision. The container's platform starts it again if it stops.
 //
 // The forward run's folder is a share that outlives the container (VAULT_FORWARD_DIR). The image
 // carries the folder as it stood on this Mac at the moment of the move (/app/seed); it is copied

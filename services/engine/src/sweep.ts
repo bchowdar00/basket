@@ -12,7 +12,7 @@ import type { EngineState, Lists } from "./pass.ts";
 
 export type SweepPlan = { symbols: string[]; byPool: Record<string, { symbols: string[]; complete: boolean }>; pairs?: Record<string, Pair> };
 
-/** Due from the hub's instant on, and a day over `sweepsADay` after the last sweep. */
+/** Due from the team's instant on, and a day over `sweepsADay` after the last sweep. */
 export function sweepDue(rule: Rule, sweptAtMs: number[], nowMs: number): boolean {
   if (!(nowMs >= rule.noSizeBeforeMs)) return false;
   const last = sweptAtMs.length > 0 ? Math.max(...sweptAtMs) : null;

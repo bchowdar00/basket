@@ -205,7 +205,7 @@ export async function main(io: Io): Promise<void> {
   await commits?.idle();
 }
 
-// Run directly (by `deploy/start-engine.sh`, and only on his word): the real network, the forward run's folder.
+// Run directly (by `deploy/start-engine.sh`, and only by the team's decision): the real network, the forward run's folder.
 if (import.meta.main) {
   const { homedir } = await import("node:os");
   const { fileURLToPath } = await import("node:url");

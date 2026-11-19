@@ -1,6 +1,6 @@
 // The operator's screen, drawn from a `Screen` value. Pure: it reads only its props, so the same
 // component renders on the server's recorded answers (the operator) and in a visitor's own browser.
-// The look is the departure board (his choice, 2026-11-17): the words and the figures; the ground,
+// The look is the departure board (chosen 2026-11-17): the words and the figures; the ground,
 // type and the one move are in the stylesheets. Every dollar figure here is a reward figure, so each
 // carries Gemini's text beside it or in its column header; no figure is a reading of any account.
 
@@ -117,7 +117,7 @@ export function Screen({ screen, nowMs, openKey, onOpen, changed, settings, step
           <Opened pool={open} settings={settings} steps={steps} qty={qty} spreadCents={spreadCents} onQty={onQty} onSpread={onSpread} books={books} pending={pending} extra={extra} unreadLeft={unreadLeft} />
         )}
       </div>
-      {/* The one footnote (his word of 2026-11-19): what every reward figure on the screen rests on. */}
+      {/* The one footnote (decided 2026-11-19): what every reward figure on the screen rests on. */}
       <footer className="screen-foot" role="note">{"Every reward figure on this screen is " + GEMINI_TEXT + ". Least figures are floors at the moment the books were read, not forecasts. Gemini's rules shut out contracts in post-only mode and members under a market-maker agreement; this screen reads neither. Nothing here places an order."}</footer>
     </div>
   );

@@ -34,12 +34,12 @@ test("the settings file holds exactly the thirteen figures that are ours", () =>
   });
 });
 
-test("the hub's limits on the sweep: more than four a day, or books less than 1.2 seconds apart, are refused", () => {
+test("the team's limits on the sweep: more than four a day, or books less than 1.2 seconds apart, are refused", () => {
   assert.throws(() => readRule({ ...rule, sweepsADay: 5 }), /sweepsADay/);
   assert.equal(readRule({ ...rule, sweepsADay: 1 }).sweepsADay, 1);
   assert.throws(() => readRule({ ...rule, sweepApartMs: 1_199 }), /sweepApartMs/);
   assert.equal(readRule({ ...rule, sweepApartMs: 2_000 }).sweepApartMs, 2_000);
-  assert.throws(() => readRule({ ...rule, noSizeBeforeMs: 1 }), /noSizeBeforeMs/); // the hub's instant is the earliest (audit 1, finding 4)
+  assert.throws(() => readRule({ ...rule, noSizeBeforeMs: 1 }), /noSizeBeforeMs/); // the team's instant is the earliest (audit 1, finding 4)
   assert.throws(() => readRule({ ...rule, noSizeBeforeMs: Date.UTC(2026, 10, 17, 5, 59, 59) }), /noSizeBeforeMs/);
   assert.equal(readRule({ ...rule, noSizeBeforeMs: Date.UTC(2026, 10, 18) }).noSizeBeforeMs, Date.UTC(2026, 10, 18));
   const { noSizeBeforeMs: _gone, ...missing } = rule;

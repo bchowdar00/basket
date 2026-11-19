@@ -48,7 +48,7 @@ test("the lead figures read with the fixture's own numbers", () => {
   expect(html).toContain("1 in play, not scored from the list");
 });
 
-// His word of 2026-11-19: one footnote, not the words beside every figure.
+// Decided 2026-11-19: one footnote, not the words beside every figure.
 test("Gemini's text stands once on the screen, in the footnote at its foot", () => {
   const html = render();
   expect(html.split(GEMINI_TEXT).length - 1).toBe(1);

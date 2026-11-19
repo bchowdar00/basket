@@ -1,6 +1,6 @@
 // Makes the relayer's test key straight into the Key Vault, as the secret `relayer-key`.
 //
-// His yes, 2026-11-18 ("Make relayer key"). The key is made in this process and handed to `az` on
+// Run once, on 2026-11-18, by the team's decision. The key is made in this process and handed to `az` on
 // its standard input, which sends it over TLS to the Key Vault; it is then read back into this
 // process to check that it gives the same address. It is never printed, never written to a file
 // and never put in a command's arguments; only the address is printed. A name already in the vault

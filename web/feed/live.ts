@@ -1,13 +1,13 @@
-// The operator's screen reading Gemini itself, from this Mac only (his word, 2026-11-18: "Yes,
-// read live"). The limits he approved, and where each is held:
+// The operator's screen reading Gemini itself, from this Mac only (decided 2026-11-18: "Yes,
+// read live"). The limits approved, and where each is held:
 //   - the lists (settings and the reward list: three requests) no more often than every five
 //     minutes, and only when the page asks: `LISTS_EVERY_MS`, and nothing here runs on a timer;
 //   - when a pool is opened: each of its events by its ticker, then one book for each contract
 //     that has both prices, once an opening: an event or a book read is kept `BOOK_KEEP_MS`, so
 //     opening a pool again inside that time asks nothing. (The Sports list is no longer read: on
 //     2026-11-18 it stopped giving the season-long markets the reward list names, so an event is
-//     asked for by name. Fewer requests a refresh than he approved; the events of an opened pool
-//     are the new kind of request, his word asked for before the first.)
+//     asked for by name. Fewer requests a refresh than approved; the events of an opened pool
+//     are the new kind of request, the team's go-ahead asked for before the first.)
 //   - 1.2 seconds apart and a minute's stop after a 429: the engine's own `reader`, one for the
 //     whole server, so the lists and the books share one queue and one clock;
 //   - every answer kept raw outside the build folder, as the engine keeps its own.
@@ -30,7 +30,7 @@ export function symbolsToRead(events: ListedEvent[], unreadToo = false): string[
   // With `unreadToo`, also the contracts the list's prices could not be read for (the exchange's
   // three copies of a best price disagreeing, as seen 2026-11-18): only their book says whether a
   // maker can be qualifying there. Off unless BASKET_READ_UNREAD=1: more requests an opening than
-  // the "one book for each contract that has both prices" he approved.
+  // the "one book for each contract that has both prices" approved.
   const unread = unreadToo ? events.filter((e) => !e.live).flatMap((e) => e.unread.filter((s) => s !== "")) : [];
   return [...unread, ...events
     .filter((e) => !e.live)

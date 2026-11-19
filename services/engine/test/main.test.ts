@@ -58,7 +58,7 @@ function clock(startMs: number) {
 const folder = () => mkdtempSync(join(tmpdir(), "vault-forward-test-"));
 const lines = (dir: string) => readFileSync(join(dir, "ledger.jsonl"), "utf8").trim().split("\n").map((l) => JSON.parse(l));
 
-const T = Date.UTC(2026, 10, 17, 1, 0, 0); // before the hub's instant: no sweep
+const T = Date.UTC(2026, 10, 17, 1, 0, 0); // before the team's instant: no sweep
 
 test("M1 the ledger's first line holds the rule's hash and the settings path; each pass row chains on the last", async () => {
   const dir = folder(), c = clock(T), x = exchange(c);
@@ -70,7 +70,7 @@ test("M1 the ledger's first line holds the rule's hash and the settings path; ea
   for (const l of rest) { head = chain(head, JSON.stringify(l.row)); assert.equal(l.head, head); }
   assert.equal(JSON.parse(readFileSync(join(dir, "state.json"), "utf8")).chainHex, head);
   assert.equal(readFileSync(join(dir, "passes.log"), "utf8").trim().split("\n").length, 3);
-  assert.ok(x.asked.every((u) => !u.includes("/v1/book/"))); // no book before the hub's instant
+  assert.ok(x.asked.every((u) => !u.includes("/v1/book/"))); // no book before the team's instant
 });
 
 test("M2 every raw answer is kept under reads/, each line its own gzip member (zcat gives the lines back)", async () => {
@@ -137,7 +137,7 @@ test("M6 the hash check is written before the first request, in main's own text"
   assert.ok(body.indexOf("checkLedger(") < body.indexOf("reader("));
 });
 
-test("M7 from the hub's instant a sweep runs where a quote stands, its books are kept, and its figure joins the state", async () => {
+test("M7 from the team's instant a sweep runs where a quote stands, its books are kept, and its figure joins the state", async () => {
   const dir = folder(), c = clock(rule.noSizeBeforeMs - 26 * 3_600_000), x = exchange(c);
   await main({ dir, buildDir: BUILD, deps: { fetcher: x.fetcher, ...c }, passes: 26 * 12 + 3 });
   const books = x.asked.filter((u) => u.includes("/v1/book/"));

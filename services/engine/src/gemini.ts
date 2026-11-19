@@ -20,7 +20,7 @@ export class NoAnswer extends Error {}
 export class Stopped extends Error {}
 /** An answer that is not the shape expected, or a status that is not 200 or 429. */
 export class BadAnswer extends Error {}
-/** A book asked for before sizes may be read (the hub's limit): nothing was asked. */
+/** A book asked for before sizes may be read (the team's limit): nothing was asked. */
 export class NotYet extends Error {}
 
 export type Answer = { status: number; json: unknown; text?: string }; // `text`: the body of an answer that was not 200, kept as it came

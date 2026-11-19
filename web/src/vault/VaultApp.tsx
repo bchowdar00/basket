@@ -4,7 +4,7 @@
 // rendered and read in tests. `VaultApp` is the container: it makes the browser wallet, talks to
 // the relayer and reads the vault, works out the one next step, and runs it.
 //
-// Word rules (his word of 2026-11-19, which replaces the house rule of 2026-11-18 for this page): the
+// Word rules (decided 2026-11-19, replacing the house rule of 2026-11-18 for this page): the
 // page reads as a product would, with amounts in dollars; that the money is test USDC with no real
 // value and that a round closes with a simulated result is said once, small, at the foot of every
 // screen (`DEMO_NOTE` in VaultApp.tsx). Still: no yearly rate, and nothing said to be earned or
@@ -44,7 +44,7 @@ export function canDeclareDefault(data: VaultData): boolean {
 }
 
 /** The one line that says what the money is. It stands small at the foot of every screen of the page
- * (his word, 2026-11-19: a small note at the bottom, the rest as a product would read). */
+ * (decided 2026-11-19: a small note at the bottom, the rest as a product would read). */
 export const DEMO_NOTE = "Demo on Arc’s test network. Balances are test USDC with no real value; rounds close with a simulated result.";
 
 const PRIMARY_LABEL: Record<Step["kind"], string | null> = {

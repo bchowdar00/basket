@@ -3,7 +3,7 @@
 // props and the `alloc` library; every figure of the exchange's arrives in `settings`. What it
 // shows is a floor at the moment the books were read, never a forecast of fills or of rewards.
 // The words that go with every reward figure stand once, at the foot of the screen this sits in
-// (his word of 2026-11-19: one footnote).
+// (decided 2026-11-19: one footnote).
 
 import { useMemo, type ReactNode } from "react";
 import type { CSSProperties } from "react";

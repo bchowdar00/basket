@@ -30,7 +30,7 @@ const withQuote = (event: string, symbol: string, poolKey: string): EngineState 
   return st;
 };
 
-test("S1 a sweep is due only from the hub's instant on, and at most sweepsADay a day", () => {
+test("S1 a sweep is due only from the team's instant on, and at most sweepsADay a day", () => {
   assert.equal(sweepDue(rule, [], T - 1), false);
   assert.equal(sweepDue(rule, [], T), true);
   assert.equal(sweepDue(rule, [T], T + 6 * HOUR - 1), false);
