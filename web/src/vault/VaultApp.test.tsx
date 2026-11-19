@@ -109,6 +109,7 @@ test("the vault's terms are shown from the chain, in dollars, with no yearly rat
   const html = render(data({ commits: 3n, head: HASH }));
   expect(html.toLowerCase()).toContain("draw limit");
   expect(html).toContain("$30.00, the most"); // the draw limit
+  expect(html).toContain("the lesser of $30.00 by its bond and $500.00 by the vault’s size");
   expect(html).toContain("$20.00 posted"); // the bond
   expect(html.toLowerCase()).toContain("bond");
   expect(html.toLowerCase()).toContain("fee");
@@ -196,4 +197,9 @@ test("the commit link goes to the vault's own address on the explorer, not its n
       deadlinePassed={false} explorerBase={EXPLORER} busy={false} error={null} notice={null} onPrimary={() => undefined} onDeclareDefault={() => undefined} />);
   expect(html).toContain(EXPLORER + "/address/" + VAULT_AT);
   expect(html).not.toContain("/address/stage");
+});
+
+test("the room left is shown to the nearest cent, so dust left by rounding does not read as room taken", () => {
+  const html = render(data({ cap: 10_000n * USD, room: 10_000n * USD - 1n }));
+  expect(html).toContain("$10,000.00 in all ($10,000.00 of room left)");
 });

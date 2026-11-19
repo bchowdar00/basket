@@ -154,11 +154,11 @@ export function VaultView(p: VaultViewProps) {
         <h2 className="vault-terms-head">The vault’s terms</h2>
         <dl className="vault-terms-list">
           <dt>Draw limit</dt>
-          <dd>${fmtUsd(d.maxDraw)}, the most the operator may draw for one round</dd>
+          <dd>${fmtUsd(d.maxDraw)}, the most the operator may draw for one round: the lesser of ${fmtUsd(d.byBond)} by its bond and ${fmtUsd(d.byVault)} by the vault’s size</dd>
           <dt>Bond</dt>
           <dd>${fmtUsd(d.bond)} posted by the operator, first to take a loss</dd>
           <dt>Cap</dt>
-          <dd>${fmtUsd(d.cap)} in all (${fmtUsd(d.room)} of room left)</dd>
+          <dd>${fmtUsd(d.cap)} in all (${fmtUsd(d.room + 5_000n)} of room left)</dd>
           <dt>Round length</dt>
           <dd>{d.epochSeconds.toString()} seconds{d.epoch.open ? ", " + timeLeft(d.epoch.deadline, p.nowSec) : ", no round open now"}</dd>
           {d.epoch.open && (

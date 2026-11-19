@@ -147,7 +147,7 @@ Fees on Arc are paid in USDC. That is why a commit every five minutes is practic
 **The engine's runs.** There are two, under the same rule hash.
 
 - *The first run* started on 2026-11-16 and moved to Azure on 2026-11-17, committing each read's head to the main vault: 252 commits. On 2026-11-18 Gemini's event list stopped returning the season-long markets its reward list names; the engine made no further pass and was stopped.
-- *The second run* started on 2026-11-19T02:04Z with a new, empty ledger. Its reader reads those events one at a time by ticker, afresh at every pass, and keeps events that are not sport out of the ledger. It was started fresh on purpose: carried on from the first run's state, the first pass would have counted every quote left standing two days earlier, on games since played, as filled at the moment of the restart. Because a ledger's chain starts at the rule hash, the head on chain went back to the rule hash at the second run's first commit. The two ledgers are separate records, each checkable against its own commits.
+- *The second run* started on 2026-11-19T02:04Z with a new, empty ledger. Its reader reads those events one at a time by ticker, afresh at every pass, and keeps events that are not sport out of the ledger. It was started fresh on purpose: carried on from the first run's state, the first pass would have counted every quote left standing two days earlier, on games since played, as filled at the moment of the restart. Because a ledger's chain starts at the rule hash, the head on chain went back to the rule hash at the second run's first commit. The two ledgers are separate records, each checkable against its own commits. As of 2026-11-19T06:08Z the second run has written no quote: the rule quotes only in a pool where the reward list shows no maker for the last scored day, and at every read so far each sport pool on the list showed at least one. Its commits are hashes of reads, with no quote, fill or row behind them yet.
 
 What the simulation still sets against itself: a standing quote it has no read for at a pass is counted as filled on the worse side, whatever the reason the read is missing.
 
@@ -177,7 +177,7 @@ AI tools were used to write and review code throughout the week.
 
 `npm test` from the root, and `npm test --prefix services/relayer`. Counts as of 2026-11-19:
 
-- `web` (Vitest): 158
+- `web` (Vitest): 159
 - `contracts` (Hardhat, local chain): 70
 - `services/engine` (`node --test`): 107
 - `services/relayer` (`node --test`): 61
