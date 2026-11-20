@@ -203,3 +203,18 @@ test("the room left is shown to the nearest cent, so dust left by rounding does 
   const html = render(data({ cap: 10_000n * USD, room: 10_000n * USD - 1n }));
   expect(html).toContain("$10,000.00 in all ($10,000.00 of room left)");
 });
+
+// Review of 2026-11-19: with storage blocked the page set state while rendering and React gave it up (a blank page).
+test("a browser whose storage throws gets the page that says so, not a render that never ends", async () => {
+  const { VaultApp } = await import("./VaultApp.tsx");
+  const g = globalThis as { window?: unknown };
+  const had = g.window;
+  g.window = { get localStorage(): never { throw new Error("storage is blocked"); } };
+  try {
+    const html = decode(renderToStaticMarkup(<VaultApp settings={{ chainId: 5042002, rpc: "http://127.0.0.1:1", explorer: "http://127.0.0.1:1", relayer: "/relay", vault: "0x0000000000000000000000000000000000000001" }} />));
+    expect(html).toContain("BASKET");
+    expect(html).toContain("role=\"alert\"");
+  } finally {
+    g.window = had;
+  }
+});

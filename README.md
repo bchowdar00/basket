@@ -4,7 +4,7 @@ Basket has two halves. The first is an operator's screen on Gemini Prediction Ma
 
 What it is not: it is not a trading bot. It places no order on any exchange and holds no exchange key. The operator is simulated. All money on chain is test USDC on Arc's test network and has no value, and every round in the demo closes with a simulated result.
 
-- **Phone page (the vault, from a phone):** https://basket-ubc.westus.azurecontainer.io/ No app or wallet is needed: add funds, allow, deposit. A demo round opens on this vault by itself about every ten minutes and closes about thirty seconds later with a small simulated gain.
+- **Phone page (the vault, from a phone):** https://basket-ubc.westus.azurecontainer.io/ No app or wallet is needed: add funds, allow, deposit. A demo round opens on this vault by itself about every ten minutes and closes about thirty seconds later with a small simulated gain; the vault's round length is five minutes, which is the operator's deadline to settle.
 - **Video:** [link to be supplied]
 
 ## 1. What it does
@@ -64,7 +64,7 @@ npm test -w contracts
 - `packages/rule`: the engine's decision, its settings file, and the rule's hash (SHA-256 over the settings text and every source file of the three libraries).
 - `packages/ledger`: the rows, the fills and minutes the simulation counts, and the chain that links each row's hash to the one before.
 - `services/engine`: the simulated operator. It reads Gemini's public lists and books, runs the decision, writes its ledger and every raw answer to a folder outside the repository, and sends each new chain head to the vault on Arc. It has no order request.
-- `services/relayer`: pays the phone's fees. It hands each phone its test USDC once under limits, sends `declareDefault` itself, and otherwise only passes on a transaction the phone signed (`approve`, `deposit`, `requestWithdraw`, `claim`). Every other call is refused.
+- `services/relayer`: gives the phone its fee money. It hands each phone its test USDC once under limits, part of it to deposit and part to pay fees with, tops the fee part up at most twice, sends `declareDefault` itself, and otherwise only passes on a transaction the phone signed (`approve`, `deposit`, `requestWithdraw`, `claim`), which the phone's own key pays for. It also answers a handed phone's account number and fees. Every other call is refused.
 - `web/src/screen`, `web/src/alloc.ts`, `web/src/calc.ts`: the operator's screen. `web/feed` is the dev-server route that reads for it.
 - `web/src/vault`: the phone page and its in-browser wallet.
 - `contracts`: `BondedVault.sol`, the deploy script and the stage tool that opens and closes a round.
@@ -94,11 +94,12 @@ npm test -w contracts
 | `BondedVault` | Address | Terms |
 |---|---|---|
 | Main vault: two-day round; the engine commits its reads here | `0x41b72ae9a2e352cbfb77950715606f06f5e4d327` | `deploy/terms-vault.json` |
-| Stage vault: one-minute round; the one the phone page opens | `0x1781eaafe2b674056f64a7daee1fb77fd8e85b8b` | `deploy/terms-stage.json` |
-| Second stage vault: one-minute round; in default since a rehearsal on 2026-11-18, closed for good | `0x7653ac79ed456c76eb445482ebe832b15286bb94` | `deploy/terms-stage2.json` |
-| Fourth stage vault: one-minute round; a default was declared here from the phone page on 2026-11-19, closed for good | `0x493aa0b9b855fe4b06769e8461ee807c9815d6b0` | `deploy/terms-stage4.json` |
-| Third stage vault: one-minute round; a round left open past its deadline since 2026-11-19, not defaulted | `0x6dacabf26d0af405b4603600bc6d622e9d540ffd` | `deploy/terms-stage3.json` |
-| Fifth stage vault: one-minute round; bonded and unused, a spare (`?vault=stage5` on the phone page) | `0x813570cd78318372eca5e20ae876daa8c319d798` | `deploy/terms-stage5.json` |
+| Demo vault (`stage6`): five-minute round; the one the phone page opens; a demo round runs on it about every ten minutes | `0xc8435058c05ff654f8091a9f05273e21ab46e928` | `deploy/terms-stage6.json` |
+| Spare (`stage5`): one-minute round; bonded and unused (`?vault=stage5` on the phone page) | `0x813570cd78318372eca5e20ae876daa8c319d798` | `deploy/terms-stage5.json` |
+| `stage`: one-minute round; the phone page's vault until 2026-11-20, open, no longer run | `0x1781eaafe2b674056f64a7daee1fb77fd8e85b8b` | `deploy/terms-stage.json` |
+| `stage2`: one-minute round; in default since a rehearsal on 2026-11-18, closed for good | `0x7653ac79ed456c76eb445482ebe832b15286bb94` | `deploy/terms-stage2.json` |
+| `stage3`: one-minute round; a round was left open past its deadline on 2026-11-19 and a default was declared from the phone page on 2026-11-20, closed for good | `0x6dacabf26d0af405b4603600bc6d622e9d540ffd` | `deploy/terms-stage3.json` |
+| `stage4`: one-minute round; a default was declared here from the phone page on 2026-11-19, closed for good | `0x493aa0b9b855fe4b06769e8461ee807c9815d6b0` | `deploy/terms-stage4.json` |
 
 The engine's rule hash, named on chain before its first read: `35e939081fa8e0b4ef01814c6437d1cb9a009c977c57bc390be004488ad86ea8`. `node scripts/rule-hash.mjs` works it out again from this repository.
 
@@ -108,7 +109,7 @@ The engine's rule hash, named on chain before its first read: `35e939081fa8e0b4e
 
 **Why every figure is a floor.** For a pool, Basket reads every contract's book and sets our quote's score against the most the orders already resting there can be scoring: every resting contract is counted as a rival's score, whoever placed it. That share of the pool is the least the published score would credit at the moment the books were read. It is not a forecast. Other makers can arrive and the share falls. A fill changes everything: the best floors are often large bids at one cent beside a thin ask, and a bid that fills is money in a long shot. And every reward figure is by the text of Gemini's rules; not observed in any account.
 
-**The allocator** is greedy. At each step it spends the next block of the budget where it adds the most floor a dollar: entering a contract at the least size on both sides, or growing one side of a quote it holds. Entering is a lump, so this is a good allocation, not a proven best one. Above 20,000 dollars it spends in larger blocks first so the page stays quick.
+**The allocator** is greedy. At each step it spends the next block of the budget where it adds the most floor a dollar: entering a contract at the least size on both sides, or growing one side of a quote it holds. Entering is a lump, so this is a good allocation, not a proven best one. From 40,000 dollars up it spends in larger blocks first so the page stays quick.
 
 **The vault's terms**, as deployed (`deploy/terms-*.json`):
 
@@ -126,7 +127,7 @@ The engine's rule hash, named on chain before its first read: `35e939081fa8e0b4e
 - **Rewards are known only from the text of Gemini's rules.** Nothing has been observed in any account. No order was placed by this entry and no reward was received.
 - **Gemini may withhold.** Its rules let it delay, withhold or reverse rewards, including for quoting without a real intent to trade, and it may change or end the program.
 - **A floor is not a net.** The screen says nothing of fills. The simulation counts a fill wherever its reads leave a doubt, but it cannot see the takers a real quote would attract.
-- **The operator is limited, not removed.** In one round it can take the draw less its bond, and it can send back less than it made. The per-market loss cap is a number in the contract that the engine reads and keeps to; the contract cannot enforce it, because it cannot see the exchange.
+- **The operator is limited, not removed.** In one round it can take the draw less its bond, and it can send back less than it made. The per-market loss cap is a number in the contract and the same number in the engine's settings (`settings/rule.json`), which is the copy the engine keeps to; the contract cannot enforce it, because it cannot see the exchange.
 - **The demo's closing figure is the operator's word.** The contract counts only dollars, but the test USDC sent back stands for a simulated result.
 - **Pooled money.** Taking other people's money to trade these contracts raises legal questions, and Gemini's terms have a user trade as principal. This entry takes no outside money, and a real version would need counsel and Gemini's written word first.
 - **Custody is not built.** A real version needs the drawn money to sit where the operator can trade it and cannot withdraw it. That, and moving USDC between Arc and an exchange with CCTP, are designs only.
@@ -145,12 +146,12 @@ No trading endpoint is called and no key is used. `scripts/no-orders.test.mjs` f
 
 All of the vault's core is on Arc: the USDC it holds, the shares, the bond, the draw limit, each round's plan hash, one hash for every read of the engine's run, what went out and what came back, and the default. No price and nothing of Gemini's is on chain.
 
-Fees on Arc are paid in USDC. That is why a commit every five minutes is practical, and why a phone needs no second token: the relayer pays, and the phone signs only its own four calls.
+Fees on Arc are paid in USDC. That is why a commit every five minutes is practical, and why a phone needs no second token: the relayer hands the phone a little USDC for fees, and the phone signs and pays for only its own four calls.
 
 **The engine's runs.** There are two, under the same rule hash.
 
 - *The first run* started on 2026-11-16 and moved to Azure on 2026-11-17, committing each read's head to the main vault: 252 commits. On 2026-11-18 Gemini's event list stopped returning the season-long markets its reward list names; the engine made no further pass and was stopped.
-- *The second run* started on 2026-11-19T02:04Z with a new, empty ledger. Its reader reads those events one at a time by ticker, afresh at every pass, and keeps events that are not sport out of the ledger. It was started fresh on purpose: carried on from the first run's state, the first pass would have counted every quote left standing two days earlier, on games since played, as filled at the moment of the restart. Because a ledger's chain starts at the rule hash, the head on chain went back to the rule hash at the second run's first commit. The two ledgers are separate records, each checkable against its own commits. As of 2026-11-19T06:08Z the second run has written no quote: the rule quotes only in a pool where the reward list shows no maker for the last scored day, and at every read so far each sport pool on the list showed at least one. Its commits are hashes of reads, with no quote, fill or row behind them yet.
+- *The second run* started on 2026-11-19T02:04Z with a new, empty ledger. Its reader reads those events one at a time by ticker, afresh at every pass, and keeps events that are not sport out of the ledger. It was started fresh on purpose: carried on from the first run's state, the first pass would have counted every quote left standing two days earlier, on games since played, as filled at the moment of the restart. Because a ledger's chain starts at the rule hash, the head on chain went back to the rule hash at the second run's first commit. The two ledgers are separate records, each checkable against its own commits. As of 2026-11-19T06:08Z the second run has written no quote: the rule quotes only in a pool where the reward list shows no maker for the last scored day, and at every read so far each sport pool on the list showed at least one. Its commits are hashes of its ledger, which so far holds one row for each read and no quote or fill.
 
 In the three hashed libraries (`packages/score`, `packages/rule`, `packages/ledger`) a comment that says "the hub" means the team's own limits on reading Gemini's API; those files are left byte for byte as they were, because a changed comment would change the rule hash.
 
@@ -180,9 +181,10 @@ AI tools were used to write and review code throughout the week.
 
 ## 11. Tests
 
-`npm test` from the root, and `npm test --prefix services/relayer`. Counts as of 2026-11-19:
+`npm test` from the root, and `npm test --prefix services/relayer`. Counts as of 2026-11-20:
 
-- `web` (Vitest): 159
+- `packages/score`, `packages/rule`, `packages/ledger` (`node --test`): 31, 32, 52
+- `web` (Vitest): 162
 - `contracts` (Hardhat, local chain): 70
 - `services/engine` (`node --test`): 107
 - `services/relayer` (`node --test`): 61

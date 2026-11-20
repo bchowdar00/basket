@@ -1,0 +1,10 @@
+{
+  "name": "stage6",
+  "operator": "0xa4A2dD245bFCA965E1FDcb4B8Bf218fD6Bb2fd61",
+  "drawBondHalves": 3,
+  "drawVaultBps": 5000,
+  "gainBps": 2000,
+  "epochSeconds": 300,
+  "capPerMarketMicros": 60000000,
+  "depositCapMicros": 10000000000
+}

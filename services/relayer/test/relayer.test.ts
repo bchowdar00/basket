@@ -114,9 +114,9 @@ test("a relayer balance under one handout plus one dollar refuses as empty", asy
   await assert.rejects(app.handout({ address: addr(13), device: device(13) }, "203.0.113.7"), (e: unknown) => e instanceof Refused && e.code === "empty");
 });
 
-test("more than twelve handouts an hour from one address are refused", async () => {
+test("more than forty handouts an hour from one address are refused", async () => {
   const { app } = make({}, { most: 1000 });
-  for (let i = 0; i < 12; i++) await app.handout({ address: addr(1000 + i), device: device(1000 + i) }, "198.51.100.9");
+  for (let i = 0; i < 40; i++) await app.handout({ address: addr(1000 + i), device: device(1000 + i) }, "198.51.100.9");
   await assert.rejects(app.handout({ address: addr(2000), device: device(2000) }, "198.51.100.9"), (e: unknown) => e instanceof Refused && e.code === "too-many");
 });
 
@@ -171,8 +171,8 @@ test("fix 3: 150 concurrent handouts from one network address pay at most the ho
   const asks = Array.from({ length: 150 }, (_, i) =>
     app.handout({ address: addr(3000 + i), device: device(3000 + i) }, "198.51.100.9").then(() => "ok", () => "no"));
   const got = await Promise.all(asks);
-  assert.equal(got.filter((x) => x === "ok").length, 12);
-  assert.equal(transfers.length, 12);
+  assert.equal(got.filter((x) => x === "ok").length, 40);
+  assert.equal(transfers.length, 40);
 });
 
 test("fix 1: 20 concurrent top-ups for one phone pay at most twice, and a later third is refused", async () => {

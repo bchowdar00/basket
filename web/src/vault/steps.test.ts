@@ -197,3 +197,22 @@ test("the last step says why nothing is offered, and never offers more funds", (
   expect(tight.sentence).toMatch(/room for less than the smallest deposit/);
   expect(ended.sentence).toMatch(/has ended/);
 });
+
+// Review of 2026-11-19: a round left open past its deadline took a fresh wallet's handout and deposit.
+test("a round open past its deadline is offered no funds, no allowance and no deposit", () => {
+  const late = { id: 1n, open: true, defaulted: false, deadline: 900n }; // nowSec is 1,000
+  const fresh = nextStep(base({ epoch: late }));
+  expect(fresh.kind).toBe("waiting");
+  expect(fresh.sentence).toBe("This round is past its deadline. Nothing can be deposited until it is settled or a default is declared.");
+  const funded = nextStep(base({ epoch: late, balance: 55n * USD }));
+  expect(funded.kind).toBe("waiting");
+  const allowed = nextStep(base({ epoch: late, balance: 55n * USD, allowance: 50n * USD }));
+  expect(allowed.kind).toBe("waiting");
+});
+
+test("a round open before its deadline still takes a deposit, and a holder past the deadline can still ask to withdraw", () => {
+  const inTime = nextStep(base({ epoch: { id: 1n, open: true, defaulted: false, deadline: 2_000n }, balance: 55n * USD, allowance: 50n * USD }));
+  expect(inTime.kind).toBe("deposit");
+  const holder = nextStep(base({ epoch: { id: 1n, open: true, defaulted: false, deadline: 900n }, shares: 10n }));
+  expect(holder.kind).toBe("ask");
+});

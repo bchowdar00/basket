@@ -12,7 +12,7 @@ import type { Store } from "./store.ts";
 const ADDRESS = /^0x[0-9a-fA-F]{40}$/;
 const DEVICE = /^[A-Za-z0-9_-]{16,64}$/;
 const ONE_DOLLAR = 1_000_000n; // USDC's smallest units in one whole dollar
-const HANDOUTS_AN_HOUR = 12; // from one network address: under the whole dispenser, so one address cannot take it all in an hour (audit of the candidate, 2026-11-18); a room behind one address is slowed, not shut out
+const HANDOUTS_AN_HOUR = 40; // from one network address: under the whole dispenser, so one address cannot take it all in an hour (audit of the candidate, 2026-11-18); a room behind one address is slowed, not shut out
 const DEFAULTS_A_MINUTE = 30; // from one network address
 const TXS_AN_HOUR = 30; // from one signer
 const FEES_MOST = 2; // top-ups an address

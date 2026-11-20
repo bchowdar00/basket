@@ -9,7 +9,9 @@ import type { ListedEvent, PoolRow, Pools } from "../../services/engine/src/gemi
 const HOUR = 3_600_000;
 const WEEK_HOURS = 7 * 24;
 
-export type ScreenIn = { settings: Settings; pools: Pools; events: ListedEvent[]; eventsAtMs: number; passes: PassRow[] };
+/** `readAtMs`, by pool key: when a pool's events and books were read on their own (a pool opened, or the
+ * read of every pool). Such a pool's prices are as old as that read, not as new as the lists. */
+export type ScreenIn = { settings: Settings; pools: Pools; events: ListedEvent[]; eventsAtMs: number; passes: PassRow[]; readAtMs?: Record<string, number> };
 
 export type EventView = {
   ticker: string; title: string; startMs: number;
@@ -64,7 +66,7 @@ export function screenOf(a: ScreenIn, nowMs: number): Screen {
     const count = poolCount(s, key, rows[0].poolEventCount, events.map((e) => ({ live: e.live, unread: e.unread.length, contracts: e.contracts.map((c) => ({ top: c.top })) })));
     return {
       key, name: rows[0].poolName ?? rows[0].title, categories: [...new Set(rows.map((r) => r.category))],
-      microsADay: amount(rows), claimed: rows.some((r) => r.makers > 0), makers: Math.max(...rows.map((r) => r.makers)), read: events.length > 0, count, pricesAgeMs,
+      microsADay: amount(rows), claimed: rows.some((r) => r.makers > 0), makers: Math.max(...rows.map((r) => r.makers)), read: events.length > 0, count, pricesAgeMs: a.readAtMs?.[key] !== undefined ? nowMs - a.readAtMs[key] : pricesAgeMs,
       events: events.map((e) => eventView(s, e, rowOf.get(e.ticker)!)),
       strip: stripOf(key, a.passes, nowMs),
     };

@@ -17,7 +17,7 @@ function statesOf(input: ScreenIn): Map<string, State> {
 }
 type State = ReturnType<typeof screenOf>["sport"][number]["count"]["state"];
 
-type Read = { events: ListedEvent[]; books: Map<string, Book> };
+type Read = { events: ListedEvent[]; books: Map<string, Book>; atMs: number };
 
 /** One read of /feed/pool, parsed: its events and the books read with them, or the reason it failed. */
 async function readPool(key: string): Promise<(Read & { errors: string[] }) | { error: string }> {
@@ -27,7 +27,7 @@ async function readPool(key: string): Promise<(Read & { errors: string[] }) | { 
     if (!res.ok || got.events === undefined) return { error: got.error ?? "the feed answered " + res.status };
     const books = new Map<string, Book>();
     for (const [symbol, a] of Object.entries(got.books ?? {})) if (a.book !== null) books.set(symbol, a.book);
-    return { events: got.events, books, errors: got.errors ?? [] };
+    return { events: got.events, books, errors: got.errors ?? [], atMs: Date.now() };
   } catch (e) {
     return { error: e instanceof Error ? e.message : String(e) };
   }
@@ -72,7 +72,7 @@ export function App() {
       if (!on) return;
       if ("error" in got) { setOpened({ key: openKey, events: [], books: new Map(), errors: [got.error] }); setPending(null); return; }
       setOpened({ key: openKey, events: got.events, books: got.books, errors: got.errors });
-      setReadPools((prev) => new Map(prev).set(openKey, { events: got.events, books: got.books }));
+      setReadPools((prev) => new Map(prev).set(openKey, { events: got.events, books: got.books, atMs: got.atMs }));
       setPending(null);
     })();
     return () => { on = false; };
@@ -83,7 +83,7 @@ export function App() {
   for (const r of readPools.values()) readEvents.push(...r.events);
   const readTickers = new Set(readEvents.map((e) => e.ticker));
   const shown: ScreenIn | null = input === null ? null
-    : { ...input, events: [...input.events.filter((e) => !readTickers.has(e.ticker)), ...readEvents], eventsAtMs: input.eventsAtMs };
+    : { ...input, events: [...input.events.filter((e) => !readTickers.has(e.ticker)), ...readEvents], eventsAtMs: input.eventsAtMs, readAtMs: Object.fromEntries([...readPools].map(([k, r]) => [k, r.atMs])) };
   const screen = shown === null ? null : screenOf(shown, nowMs);
 
   useEffect(() => {
@@ -139,7 +139,7 @@ export function App() {
       if (stopRef.current) break;
       const got = await readPool(keys[i]);
       if ("error" in got) { setRunError("could not read a pool: " + got.error); break; }
-      setReadPools((prev) => new Map(prev).set(keys[i], { events: got.events, books: got.books }));
+      setReadPools((prev) => new Map(prev).set(keys[i], { events: got.events, books: got.books, atMs: got.atMs }));
       setRun((r) => (r !== null && r.phase === "running" ? { ...r, done: i + 1 } : r));
       if (got.errors.some((e) => e.includes("pause"))) { setRunError("Gemini asked to pause: " + got.errors.join("; ")); break; }
       if (i + 1 < keys.length) {

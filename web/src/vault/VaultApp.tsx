@@ -227,6 +227,8 @@ export function Reading({ error }: { error: string | null }) {
   );
 }
 
+const SENT = "Sent. It takes a moment to land.";
+
 /** The container: wires one browser wallet, the relayer and a vault reader together, works out the
  * one next step and runs it. */
 export function VaultApp({ settings }: { settings: VaultSettings }) {
@@ -246,6 +248,9 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
   // `?vault=<name>`, the relayer's vault of that name (so one page can show a second stage vault).
   const vaultRef = useRef<Address>(settings.vault);
   const usdcRef = useRef<Address | null>(null);
+  // Why no wallet could be kept, held in a ref: setting state here, during render, would render
+  // again and again until React gives the page up (a blank page where storage is blocked).
+  const keyError = useRef<string | null>(null);
   if (kit.current === null) {
     try {
       const store = window.localStorage;
@@ -270,7 +275,7 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
       };
     } catch (e) {
       // A browser that cannot keep a key: the page says so and offers nothing.
-      setError(e instanceof Error ? e.message : String(e));
+      keyError.current = e instanceof Error ? e.message : String(e);
     }
   }
 
@@ -291,7 +296,9 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
     const k = kit.current;
     if (k === null) return;
     let on = true;
-    void (async () => {
+    // Asked again at each timed read until it answers: a relayer that was down when the page
+    // opened must not leave the page dead for good.
+    const start = async () => {
       try {
         const info = await k.api.info();
         const mismatch = chainMismatchError(settings.chainId, info.chainId);
@@ -316,14 +323,15 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
         // Only a vault the relayer serves gets a chain reader: without one no data is read and no step is offered (audit round 2).
         vaultRef.current = mine.vault;
         chainRef.current = vaultChain({ reader: k.client, vault: mine.vault, usdc: info.usdc, chainId: settings.chainId });
-        if (on) setVaultName(mine.name);
+        if (on) { setVaultName(mine.name); setError((prev) => (prev === "the relayer did not answer" ? null : prev)); }
       } catch (e) {
         if (on) setError(e instanceof NoAnswer ? "the relayer did not answer" : e instanceof Error ? e.message : String(e));
         return;
       }
       if (on) await reload();
-    })();
-    const read = setInterval(() => { if (!document.hidden) void reload(); }, 12_000); // a page nobody is looking at asks nothing
+    };
+    void start();
+    const read = setInterval(() => { if (document.hidden) return; if (chainRef.current === null) void start(); else void reload(); }, 12_000); // a page nobody is looking at asks nothing
     const tick = setInterval(() => { if (on) setNowSec(Math.floor(Date.now() / 1000)); }, 1_000);
     return () => { on = false; clearInterval(read); clearInterval(tick); };
   }, [reload, settings.vault]);
@@ -368,7 +376,7 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
         const quote = await quoteWithFees(k);
         const raw: Hex = await chain.sign(k.wallet, call, quote);
         await k.api.relay(raw);
-        setNotice("Sent. It takes a moment to land.");
+        setNotice(SENT);
       }
     } catch (e) {
       setError(e instanceof RelayerError ? e.sentence : e instanceof NoAnswer ? "the relayer did not answer" : e instanceof Error ? e.message : "something went wrong");
@@ -381,6 +389,7 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
       await reload();
       await pause(3_000);
       await reload();
+      setNotice((prev) => (prev === SENT ? null : prev)); // it has had time to land and the figures above now show it
       setBusy(false);
     }
   }
@@ -412,7 +421,7 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
     if (lagging && nowSec % 4 === 0) void reload();
   }, [lagging, nowSec, reload]);
 
-  if (kit.current === null) return <CannotKeepWallet error={error} />;
+  if (kit.current === null) return <CannotKeepWallet error={keyError.current ?? error} />;
   if (data === null) return <Reading error={error} />;
 
   const stepInput: StepInput = {

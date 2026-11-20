@@ -154,11 +154,16 @@ export async function runSteps(a: RunArgs): Promise<void> {
   const send = async (c: Contract, functionName: string, args: readonly unknown[]): Promise<Hex> => {
     const { request } = await a.reader.simulateContract({ address: c.address, abi: c.abi, functionName, args, account } as never);
     const hash = await a.wallet.writeContract(request as never);
-    const receipt = await a.reader.waitForTransactionReceipt({ hash });
+    // The wait is short and asks often: a round's deadline does not wait for a slow node, and the
+    // caller tries again. A receipt for another transaction (one that took this one's place in the
+    // account's order) is not this call's success.
+    const receipt = await a.reader.waitForTransactionReceipt({ hash, timeout: 25_000, pollingInterval: 500 });
+    if (receipt.transactionHash.toLowerCase() !== hash.toLowerCase()) throw new Error(`${functionName} was replaced by another transaction: ${hash}`);
     if (receipt.status !== "success") throw new Error(`${functionName} was mined and failed: ${hash}`);
     return hash;
   };
   const read = (functionName: string) => a.reader.readContract({ address: a.vault.address, abi: a.vault.abi, functionName });
+  const isOpen = (epoch: readonly unknown[]) => epoch[1] === true;
 
   // A wait between an open and its close must leave the round time to be closed: past the deadline
   // anyone may declare a default, and that closes the vault for good (audit of the candidate).
@@ -193,14 +198,20 @@ export async function runSteps(a: RunArgs): Promise<void> {
         const h = (await read("head")) as Hex;
         const plan = h !== ZERO32 ? h : keccak256(toHex("stage round"));
         tx = await send(a.vault, "startEpoch", [plan, draw]);
+        if (!isOpen((await read("epoch")) as readonly unknown[])) throw new Error("the round is not open after startEpoch");
       } else {
-        const drawn = ((await read("epoch")) as readonly unknown[])[4] as bigint;
+        const before = (await read("epoch")) as readonly unknown[];
+        // A close with no round open has nothing to do: it is said and passed over, so a second try
+        // after a close that did land sends nothing.
+        if (!isOpen(before)) { a.log({ step: step.text, skipped: "no round open" }); continue; }
+        const drawn = before[4] as bigint;
         let returned: bigint;
         if (step.mode === "abs") returned = step.value;
         else if (step.mode === "plus") returned = drawn + (drawn * step.value) / 10_000n;
         else returned = drawn - (drawn * step.value) / 10_000n;
         await send(a.usdc, "approve", [a.vault.address, returned]);
         tx = await send(a.vault, "closeEpoch", [returned]);
+        if (isOpen((await read("epoch")) as readonly unknown[])) throw new Error("the round is still open after closeEpoch");
       }
       a.log({ step: step.text, tx });
     } catch (e) {

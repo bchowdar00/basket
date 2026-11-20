@@ -58,7 +58,11 @@ export function nextStep(inp: StepInput): Step {
   const pendingAsk = inp.asked.shares > 0n && inp.asked.epoch === inp.epoch.id && inp.epoch.open;
   // A deposit (and the approve before it) is offered only when the depositable amount is at least the
   // fee money kept back: anything smaller is itself fee-sized and is never put up for deposit.
-  const canDeposit = !inp.epoch.defaulted && depositable(inp) >= inp.forFees && depositable(inp) > 0n;
+  // A round still open after its deadline is waiting for the operator to settle or for a default:
+  // money put in now would sit in it, and on a default comes back by a claim, never as shares. So
+  // nothing is handed out or deposited into it.
+  const stuck = inp.epoch.open && inp.nowSec > Number(inp.epoch.deadline);
+  const canDeposit = !inp.epoch.defaulted && !stuck && depositable(inp) >= inp.forFees && depositable(inp) > 0n;
 
   // 1. Money ready to claim comes first: collect it before anything else.
   if (inp.claimable > 0n) {
@@ -107,6 +111,9 @@ export function nextStep(inp: StepInput): Step {
   }
 
   // 5. A phone with nothing anywhere: hand it test dollars to begin.
+  if (stuck && inp.shares === 0n && inp.waiting === 0n && inp.asked.shares === 0n) {
+    return { kind: "waiting", sentence: "This round is past its deadline. Nothing can be deposited until it is settled or a default is declared." };
+  }
   if (!inp.epoch.defaulted && inp.balance === 0n && inp.shares === 0n && inp.claimable === 0n && inp.waiting === 0n && inp.asked.shares === 0n) {
     return { kind: "handout", sentence: "Add funds to your wallet to start." };
   }

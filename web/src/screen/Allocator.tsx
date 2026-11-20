@@ -69,6 +69,9 @@ export function Allocator({ settings, sport, readPools, budgetUsd, stance, onBud
   const worked = useMemo(() => work(settings, sport, readPools, budget, stance), [settings, sportKey, readPools, budget, stance]);
 
   const read = sport.filter((p) => readPools.has(p.key)).length;
+  // How old the oldest of the books worked from is: the read of every pool takes many minutes, so
+  // the floors mix books of different ages and the screen says how far back they go.
+  const oldestMin = Math.floor(Math.max(0, ...sport.filter((p) => readPools.has(p.key)).map((p) => p.pricesAgeMs)) / 60_000);
   if (read === 0) {
     return (
       <section className="alloc" aria-label="allocator">
@@ -121,6 +124,7 @@ export function Allocator({ settings, sport, readPools, budgetUsd, stance, onBud
         <p className="alloc-under" role="note">{"Under Gemini's least payment of $" + dollars(settings.minPayoutMicros) + " a day: a day's total below it is not distributed."}</p>
       )}
       <p className="alloc-assumption">{ASSUMPTION}</p>
+      {read > 0 && <p className="alloc-assumption">The oldest books worked from here were read {oldestMin < 1 ? "under a minute" : oldestMin + " min"} ago.</p>}
       </div>
 
       <div className="alloc-main">

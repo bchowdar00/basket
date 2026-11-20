@@ -3,7 +3,7 @@
 // Nothing is compiled where this runs. `makeBundle` is run on the build machine and writes one
 // file: the compiled code and the SHA-256 of the source it came from. On the host a person
 // starts a one-shot unit that runs this file with the deploy key in its environment
-// (deploy/README.md). The key is read from VAULT_KEY and is never printed or written.
+// (`deploy/deploy-start.mjs`). The key is read from VAULT_KEY and is never printed or written.
 //
 // One vault is one terms file: its name and its seven figures. Run with the vault's terms and
 // again with the stage vault's, it gives the two deployments, each under its own name.
