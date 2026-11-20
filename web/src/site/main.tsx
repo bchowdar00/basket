@@ -38,14 +38,15 @@ export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
         <div className="mesh" aria-hidden="true"><img className="mesh-drift" src={meshUrl} alt="" /></div>
         <ul className="mesh-legend" aria-label="what the woven lines stand for">
           <li>Each strand, a market where depth is thin</li>
-          <li>Woven across them, one budget placed where depth pays</li>
+          <li>Woven across them, one budget placed where the score credits it most</li>
           <li>Underneath, the operator’s own bond</li>
         </ul>
         <div className="site-intro-copy">
           <h1 className="site-title"><span>A liquidity engine for</span> <span>thin prediction markets.</span></h1>
           <p className="site-lede">
-            Prediction markets are deep in a few headline markets and thin almost everywhere else, Gemini included.
-            Basket is built to put depth there.
+            Prediction markets are deep in a few headline markets and thin almost everywhere else. Basket works
+            out where an exchange’s own reward score credits two-sided quotes most, which is where few are
+            resting, and funds a bonded operator to quote there.
           </p>
           <p className="site-start"><a className="site-go" href="#plan">Start with a budget</a></p>
         </div>
