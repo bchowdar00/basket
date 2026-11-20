@@ -1,0 +1,7 @@
+*
+!packages
+!services/engine/src/gemini.ts
+!services/screen
+!web/feed/live.ts
+!web/src/pools.ts
+!web/src/screen/readall.ts

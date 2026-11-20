@@ -12,6 +12,10 @@
 	handle_path /relay/* {
 		reverse_proxy 127.0.0.1:8788
 	}
+	# The shared reader of step one: two GET routes, answered from its memory.
+	handle_path /feed/* {
+		reverse_proxy 127.0.0.1:8790
+	}
 	# The allocator's own address, from before the one page: it is step 1 there now.
 	redir /screen /#plan
 	redir /screen/* /#plan

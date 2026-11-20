@@ -97,3 +97,10 @@ html { scroll-behavior: smooth; scroll-padding-top: 64px; }
 .site-taps li::before { content: counter(tap) ". "; }
 .site-taps li.now { color: var(--indigo); font-weight: 600; }
 .site-taps li.done { color: var(--ink); text-decoration: line-through; text-decoration-color: var(--cane-dark); }
+
+/* Which markets step one is showing, and the switch between them. */
+.markets-switch { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; margin: 0 0 16px; padding: 10px 14px; background: var(--linen-2); border: 1px solid var(--cane); font-size: 13px; line-height: 1.5; }
+.markets-now { flex: 1 1 420px; text-wrap: pretty; }
+.markets-why { color: var(--ink-quiet); }
+.markets-switch button { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.05em; font-size: 13px; color: var(--ink); background: var(--linen); border: 1px solid var(--ink); border-radius: 0; padding: 8px 14px; cursor: pointer; min-height: 40px; transition: background-color 140ms ease-out, color 140ms ease-out; }
+.markets-switch button:hover { background: var(--ink); color: var(--linen); }

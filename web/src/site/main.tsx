@@ -49,8 +49,9 @@ export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
           ))}
         </ol>
         <p className="site-note" role="note">
-          This is a working demo, and everything on it can be used. The markets in step 1 are invented. The money in
-          steps 2 to 4 is test USDC on Arc’s test network. No order is placed on any exchange.
+          This is a working demo, and everything on it can be used. Step 1 works on Gemini’s live public
+          market data, or on invented markets, and says which. The money in steps 2 to 4 is test USDC on Arc’s test
+          network, and the operator there is a stand-in. No order is placed on any exchange.
         </p>
       </header>
 
@@ -60,10 +61,11 @@ export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
           Every minute a snapshot is taken, and each pool’s reward for that minute is split by the score: size, over
           the distance from the middle of the book, squared. So for any budget the best quotes can be worked out
           before a cent is committed. Change the budget, switch the stance, or open a pool in the table to try your
-          own size and spread. Each figure is a floor: it counts every order already resting as a rival. The markets
-          here are invented and move at every snapshot, so there is always something to try; the scoring is the real rule.
+          own size and spread. Each figure is a floor: it counts every order already resting as a rival. It runs
+          on Gemini’s live reward pools and books when Basket’s server has read them, and on invented markets that
+          move every minute otherwise; the line below says which, and the button beside it switches.
         </p>
-        <App sim vaultHref="#fund" />
+        <App sim shared vaultHref="#fund" />
       </section>
 
       {env.ok ? <VaultApp settings={env.settings} site /> : <MissingSettings missing={env.missing} />}

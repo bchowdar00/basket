@@ -38,8 +38,17 @@ async function readPool(key: string): Promise<(Read & { errors: string[] }) | { 
   }
 }
 
-export function App({ sim: simProp, vaultHref }: { sim?: boolean; vaultHref?: string } = {}) {
-  const SIM = SIM_FLAG || simProp === true;
+type PassNote = { startedAtMs: number | null; finishedAtMs: number | null; done: number; total: number; note: string | null };
+
+/** `shared`: a server reads Gemini for every visitor and this page only asks that server (the public
+ * page). The page then starts on the live markets and falls back to the invented ones if the server
+ * has nothing yet; a switch goes between the two. */
+export function App({ sim: simProp, vaultHref, shared }: { sim?: boolean; vaultHref?: string; shared?: boolean } = {}) {
+  const [useSim, setUseSim] = useState<boolean>(SIM_FLAG || (simProp === true && shared !== true));
+  const [liveDown, setLiveDown] = useState<string | null>(null); // why the live markets could not be shown, when they could not
+  const [passNote, setPassNote] = useState<PassNote | null>(null);
+  const autoTried = useRef(false);
+  const SIM = useSim;
   const [input, setInput] = useState<ScreenIn | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openKey, setOpenKey] = useState<string | null>(null);
@@ -69,14 +78,16 @@ export function App({ sim: simProp, vaultHref }: { sim?: boolean; vaultHref?: st
   const [runError, setRunError] = useState<string | null>(null);
   const stopRef = useRef(false);
   const source = (input as { source?: string } | null)?.source;
-  // The invented markets come with every pool's books: opening one asks nothing.
+  // The invented markets, and the shared server's read, come with every pool's books: opening one asks nothing.
+  const allRead = source === "sim" || (input as { shared?: boolean } | null)?.shared === true;
   useEffect(() => {
-    if (openKey === null || source !== "sim") return;
+    if (openKey === null || !allRead) return;
     const got = readPools.get(openKey);
     if (got !== undefined) setOpened({ key: openKey, events: got.events, books: got.books, errors: [] });
-  }, [openKey, source, readPools]);
+    else setOpened({ key: openKey, events: [], books: new Map(), errors: [] });
+  }, [openKey, allRead, readPools]);
   useEffect(() => {
-    if (openKey === null || source !== "live") return;
+    if (openKey === null || source !== "live" || allRead) return;
     let on = true;
     setPending(openKey);
     void (async () => {
@@ -88,7 +99,7 @@ export function App({ sim: simProp, vaultHref }: { sim?: boolean; vaultHref?: st
       setPending(null);
     })();
     return () => { on = false; };
-  }, [openKey, source]);
+  }, [openKey, source, allRead]);
   // The input the screen is drawn from: the feed's, with every read pool's events in place of any
   // older copy (newest copy of a ticker wins).
   const readEvents: ListedEvent[] = [];
@@ -109,8 +120,24 @@ export function App({ sim: simProp, vaultHref }: { sim?: boolean; vaultHref?: st
           setReadPools(sim.read);
         } else {
           const res = await fetch("/feed/screen");
-          if (!res.ok) throw new Error("the feed answered " + res.status);
+          if (!res.ok) throw new Error(res.status === 503 ? "its first read has not come back yet" : "the feed answered " + res.status);
           next = (await res.json()) as ScreenIn;
+          if ((next as { shared?: boolean }).shared === true) {
+            // The shared server's pools, all at once: its own read, never a request to Gemini from here.
+            const got = (await (await fetch("/feed/pools")).json()) as { pools: Record<string, { atMs: number; events: ListedEvent[]; books: Record<string, Book> }>; pass: PassNote };
+            if (!live) return;
+            // A first visit while the server's read has barely begun starts on the invented markets
+            // rather than an empty allocator; the switch still goes to the live ones as they are.
+            if (shared === true && !autoTried.current && Object.keys(got.pools).length < 8) {
+              autoTried.current = true;
+              setLiveDown("Basket’s server has read " + Object.keys(got.pools).length + " of " + got.pass.total + " pools so far");
+              setUseSim(true);
+              return;
+            }
+            autoTried.current = true;
+            setReadPools(new Map(Object.entries(got.pools).map(([k, v]) => [k, { events: v.events, books: new Map(Object.entries(v.books)), atMs: v.atMs }])));
+            setPassNote(got.pass);
+          }
         }
         if (!live) return;
         const prev = last.current;
@@ -131,9 +158,13 @@ export function App({ sim: simProp, vaultHref }: { sim?: boolean; vaultHref?: st
           setSpreadCents((cur) => cur ?? next.settings.maxSpreadCents);
         }
       } catch (e) {
-        if (live) setError(e instanceof Error ? e.message : String(e));
+        if (!live) return;
+        // On the public page the invented markets stand in when the live read cannot be shown.
+        if (shared === true && !SIM && last.current === null) { autoTried.current = true; setLiveDown(e instanceof Error ? e.message : String(e)); setUseSim(true); return; }
+        setError(e instanceof Error ? e.message : String(e));
       }
     }
+    last.current = null;
     void load();
     // The invented markets are remade at each one-minute snapshot, on the mark; a feed is asked a minute after the last time.
     let minute = Math.floor(Date.now() / 60_000);
@@ -144,7 +175,14 @@ export function App({ sim: simProp, vaultHref }: { sim?: boolean; vaultHref?: st
       if (SIM && Math.floor(Date.now() / 60_000) !== minute) { minute = Math.floor(Date.now() / 60_000); void load(); }
     }, 1_000);
     return () => { live = false; clearInterval(feed); clearInterval(tick); };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [useSim]);
+
+  /** The switch between Gemini's live markets and the invented ones (the public page only). */
+  function switchMarkets(toSim: boolean) {
+    setOpenKey(null); setOpened(null); setReadPools(new Map()); setInput(null); setError(null); setLiveDown(null); setQty(null); setSpreadCents(null);
+    setUseSim(toSim);
+  }
 
   // The read-every-pool run, driven from here: strictly one request to /feed/pool at a time, 1.2
   // seconds apart, in the order `poolsToRead` gives, stoppable before the next pool. It never starts
@@ -177,7 +215,11 @@ export function App({ sim: simProp, vaultHref }: { sim?: boolean; vaultHref?: st
   }
   function stopRun() { stopRef.current = true; }
 
-  const controls: ReactNode = source === "sim" ? (
+  const isShared = (input as { shared?: boolean } | null)?.shared === true;
+  const hhmm = (ms: number) => new Date(ms).toISOString().slice(11, 16) + " UTC";
+  const controls: ReactNode = isShared ? (
+    <div className="alloc-run"><span>{passNote === null ? "" : passNote.note !== null ? passNote.note : passNote.finishedAtMs === null ? "Basket’s server is reading Gemini now, one request every 1.2 seconds: " + passNote.done + " of " + passNote.total + " pools so far" : "All " + passNote.total + " pools read by Basket’s server; the read ended at " + hhmm(passNote.finishedAtMs)}</span></div>
+  ) : source === "sim" ? (
     <div className="alloc-run"><span>Every pool below is already read: the markets are invented and remade at each snapshot.</span></div>
   ) : source !== "live" ? undefined : (
     <div className="alloc-run">
@@ -218,6 +260,13 @@ export function App({ sim: simProp, vaultHref }: { sim?: boolean; vaultHref?: st
 
   return (
     <main className={"board" + ((input as { kept?: boolean } | null)?.kept === true ? " kept" : "")}>
+      {shared === true && input !== null && (
+        <div className="markets-switch" role="group" aria-label="which markets">
+          <span className="markets-now">{source === "sim" ? "Showing invented markets: every pool, price, book and reward amount below is made up, and moves each minute." : "Showing Gemini’s live reward pools and books, read from its public API by Basket’s server. Opening this page asks Gemini nothing."}</span>
+          {source === "sim" && liveDown !== null && <span className="markets-why">Gemini’s live markets are not ready yet: {liveDown}.</span>}
+          <button type="button" onClick={() => switchMarkets(source !== "sim")}>{source === "sim" ? "Show Gemini’s live markets" : "Show invented markets"}</button>
+        </div>
+      )}
       {input !== null && source === "sim" && vaultHref === undefined && (
         <p className="source sim-note" role="note">
           Demo on invented markets. Every pool, price, book and reward amount here is made up so that anyone can try the
@@ -226,7 +275,7 @@ export function App({ sim: simProp, vaultHref }: { sim?: boolean; vaultHref?: st
           <a href={vaultHref ?? ((import.meta as { env?: Record<string, unknown> }).env?.BASE_URL === "/screen/" ? "/" : "/vault.html")}>{vaultHref !== undefined ? "step 2" : "open the vault"}</a>.
         </p>
       )}
-      {input !== null && source !== "sim" && <p className="source">{(input as { kept?: boolean }).kept === true ? "From the answers Gemini's public API gave this Mac earlier; nothing is asked of Gemini now" : source === "live" ? "Read from Gemini's public API by this Mac" : "From the forward run's recorded answers on this Mac; nothing is asked of Gemini"}</p>}
+      {input !== null && source !== "sim" && shared !== true && <p className="source">{(input as { kept?: boolean }).kept === true ? "From the answers Gemini's public API gave this Mac earlier; nothing is asked of Gemini now" : source === "live" ? "Read from Gemini's public API by this Mac" : "From the forward run's recorded answers on this Mac; nothing is asked of Gemini"}</p>}
       {opened !== null && opened.key === openKey && opened.errors.length > 0 && <p className="error" role="alert">not everything in this pool could be read: {opened.errors.join("; ")}</p>}
       {error !== null && <p className="error" role="alert">could not read the feed: {error}</p>}
       {input !== null

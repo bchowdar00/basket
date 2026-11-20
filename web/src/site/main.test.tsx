@@ -12,7 +12,7 @@ test("the one page: its name once, the four steps in the bar and in the opening,
   for (const id of ["plan", "fund"]) expect(html).toContain('id="' + id + '"');
   for (const href of ["#plan", "#fund", "#rounds", "#safety"]) expect(html.split('href="' + href + '"').length).toBeGreaterThanOrEqual(3);
   expect(html.indexOf('id="plan"')).toBeLessThan(html.indexOf('id="fund"'));
-  expect(html).toContain("The markets in step 1 are invented");
+  expect(html).toContain("and says which");
   expect(html).toContain("No order is placed on any exchange");
   expect(html).toContain("https://source.example/basket");
 });
