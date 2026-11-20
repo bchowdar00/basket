@@ -5,6 +5,7 @@ Basket has two halves. The first is an operator's screen on Gemini Prediction Ma
 What it is not: it is not a trading bot. It places no order on any exchange and holds no exchange key. The operator is simulated. All money on chain is test USDC on Arc's test network and has no value, and every round in the demo closes with a simulated result.
 
 - **Phone page (the vault, from a phone):** https://basket-ubc.westus.azurecontainer.io/ No app or wallet is needed: add funds, allow, deposit. A demo round opens on this vault by itself about every ten minutes and closes about thirty seconds later with a small simulated gain; the vault's round length is five minutes, which is the operator's deadline to settle. The page lists each round as it closes and says when the next is due.
+- **Operator's screen on invented markets:** https://basket-ubc.westus.azurecontainer.io/screen/ The allocator and the calculator, usable at once: set a budget, switch the stance, open a pool, move its sliders. Every pool, price, book and reward amount on that page is invented and is remade at each one-minute snapshot, and the page says so; only the scoring rule working on them is the real one. It reads nothing from Gemini. For the screen on Gemini's real public data, run it from a clone (section 3).
 - **Video:** [link to be supplied]
 
 ## 1. What it does
@@ -44,10 +45,16 @@ Open the address Vite prints. `BASKET_FEED` chooses where the screen's figures c
 
 `BASKET_LIVE_DIR` and `BASKET_FORWARD_DIR` name those folders (defaults under `~/Data/hackathons/vault/`). `BASKET_READ_UNREAD=1` also reads the books of contracts whose listed prices could not be read. No secret is read by the screen.
 
-**The phone page** is `web/vault.html`. Its five settings come from the environment at build time: `VITE_VAULT_CHAIN_ID`, `VITE_VAULT_RPC`, `VITE_VAULT_EXPLORER`, `VITE_VAULT_RELAYER`, `VITE_VAULT_VAULT`. Two more are optional: `VITE_VAULT_ROUND_EVERY` (about how often a round opens on that deployment, in seconds, so the page can say when the next is due) and `VITE_VAULT_SOURCE` (a link to the source). The page says what the vault is, shows the one next step, and lists the vault's recent rounds from its own events: what the operator drew, what it sent back, and the result for depositors. The public node answers for at most 10,000 blocks of events, so that list is the last hour or so, not the whole history.
+**The phone page** is `web/vault.html`. Its five settings come from the environment at build time: `VITE_VAULT_CHAIN_ID`, `VITE_VAULT_RPC`, `VITE_VAULT_EXPLORER`, `VITE_VAULT_RELAYER`, `VITE_VAULT_VAULT`. Three more are optional: `VITE_VAULT_SCREEN` (where the screen on invented markets is, for a link), `VITE_VAULT_ROUND_EVERY` (about how often a round opens on that deployment, in seconds, so the page can say when the next is due) and `VITE_VAULT_SOURCE` (a link to the source). The page says what the vault is, shows the one next step, and lists the vault's recent rounds from its own events: what the operator drew, what it sent back, and the result for depositors. The public node answers for at most 10,000 blocks of events, so that list is the last hour or so, not the whole history.
 
 ```
 cd web && npx vite build -c vite.public.config.ts
+```
+
+**The screen on invented markets** is the same operator's screen fed by `web/src/sim/markets.ts` in place of a feed: eighteen made-up pools whose books are worked out from the minute alone, so every visitor sees the same markets and they move at each snapshot. Nothing is fetched. It also keeps a running tally: at each snapshot the allocator's quotes are credited their least share of that minute. Add `?sim` to the dev server's address to see it, or build it for a public address under `/screen/` (after the phone page's build, which empties the folder):
+
+```
+cd web && npx vite build -c vite.sim.config.ts
 ```
 
 With the dev server running, `/states.html?s=open` (also `fresh`, `funded`, `holding`, `missed`, `defaulted`, `busy`, `error`) shows the phone page in each of its states from invented values, with no chain and no relayer.
@@ -65,7 +72,7 @@ npm test -w contracts
 - `packages/ledger`: the rows, the fills and minutes the simulation counts, and the chain that links each row's hash to the one before.
 - `services/engine`: the simulated operator. It reads Gemini's public lists and books, runs the decision, writes its ledger and every raw answer to a folder outside the repository, and sends each new chain head to the vault on Arc. It has no order request.
 - `services/relayer`: gives the phone its fee money. It hands each phone its test USDC once under limits, part of it to deposit and part to pay fees with, tops the fee part up at most twice, sends `declareDefault` itself, and otherwise only passes on a transaction the phone signed (`approve`, `deposit`, `requestWithdraw`, `claim`), which the phone's own key pays for. It also answers a handed phone's account number and fees. Every other call is refused.
-- `web/src/screen`, `web/src/alloc.ts`, `web/src/calc.ts`: the operator's screen. `web/feed` is the dev-server route that reads for it.
+- `web/src/screen`, `web/src/alloc.ts`, `web/src/calc.ts`: the operator's screen. `web/feed` is the dev-server route that reads for it; `web/src/sim` makes the invented markets of the public demo.
 - `web/src/vault`: the phone page and its in-browser wallet.
 - `contracts`: `BondedVault.sol`, the deploy script and the stage tool that opens and closes a round.
 - `deploy`: the Dockerfiles, the Azure templates and the terms files.
@@ -184,7 +191,7 @@ AI tools were used to write and review code throughout the week.
 `npm test` from the root, and `npm test --prefix services/relayer`. Counts as of 2026-11-20:
 
 - `packages/score`, `packages/rule`, `packages/ledger` (`node --test`): 31, 32, 52
-- `web` (Vitest): 168
+- `web` (Vitest): 171
 - `contracts` (Hardhat, local chain): 71
 - `services/engine` (`node --test`): 107
 - `services/relayer` (`node --test`): 61

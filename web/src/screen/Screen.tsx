@@ -40,6 +40,7 @@ type Props = {
   onBudget: (n: number) => void;
   onStance: (s: Stance) => void;
   controls?: ReactNode; // the read-every-pool controls, placed in the allocator's section header
+  sim?: boolean; // the markets are invented (the public demo): the snapshot line and the footnote say so
 };
 
 const STATE_WORDS: Record<State, string> = {
@@ -67,7 +68,7 @@ function priceWords(cents: number | null): string {
   return cents === null ? "—" : cents + "¢";
 }
 
-export function Screen({ screen, nowMs, openKey, onOpen, changed, settings, steps, qty, spreadCents, onQty, onSpread, books, pending, extra, unreadLeft, readPools, budgetUsd, stance, onBudget, onStance, controls }: Props) {
+export function Screen({ screen, nowMs, openKey, onOpen, changed, settings, steps, qty, spreadCents, onQty, onSpread, books, pending, extra, unreadLeft, readPools, budgetUsd, stance, onBudget, onStance, controls, sim }: Props) {
   const { now, program } = screen;
   const seconds = Math.ceil(msToMark(nowMs) / 1_000);
   const open = openKey === null ? undefined : screen.sport.find((p) => p.key === openKey);
@@ -78,7 +79,7 @@ export function Screen({ screen, nowMs, openKey, onOpen, changed, settings, step
         <h1 className="name">{NAME}</h1>
         <p className="countdown">
           <span className="digits" key={seconds}>{seconds}</span>
-          <span className="count-label"> seconds to Gemini's next snapshot</span>
+          <span className="count-label">{sim === true ? " seconds to the next snapshot" : " seconds to Gemini's next snapshot"}</span>
         </p>
         <p className="figure f3">
           {program.pools + " pools, $" + dollars(program.microsADay) + " a day in all, each counted once, by the list's own pool ids"}
@@ -90,7 +91,7 @@ export function Screen({ screen, nowMs, openKey, onOpen, changed, settings, step
       </header>
       <Allocator
         settings={settings} sport={screen.sport} readPools={readPools}
-        budgetUsd={budgetUsd} stance={stance} onBudget={onBudget} onStance={onStance} controls={controls}
+        budgetUsd={budgetUsd} stance={stance} onBudget={onBudget} onStance={onStance} controls={controls} simMinute={sim === true ? Math.floor(nowMs / 60_000) : undefined}
       />
 
       <div className="body">
@@ -118,7 +119,7 @@ export function Screen({ screen, nowMs, openKey, onOpen, changed, settings, step
         )}
       </div>
       {/* The one footnote (decided 2026-11-19): what every reward figure on the screen rests on. */}
-      <footer className="screen-foot" role="note">{"Every reward figure on this screen is " + GEMINI_TEXT + ". Least figures are floors at the moment the books were read, not forecasts. Gemini's rules shut out contracts in post-only mode and members under a market-maker agreement; this screen reads neither. Nothing here places an order."}</footer>
+      <footer className="screen-foot" role="note">{sim === true ? "Every market, price, book and reward amount on this page is invented, and so are the program's settings; only the scoring rule is real. Least figures are floors under that rule for the books shown, not forecasts. Nothing here places an order." : "Every reward figure on this screen is " + GEMINI_TEXT + ". Least figures are floors at the moment the books were read, not forecasts. Gemini's rules shut out contracts in post-only mode and members under a market-maker agreement; this screen reads neither. Nothing here places an order."}</footer>
     </div>
   );
 }

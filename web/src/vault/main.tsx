@@ -21,6 +21,8 @@ export type VaultSettings = {
   roundEverySec?: number;
   /** Optional: where the source is (VITE_VAULT_SOURCE). */
   sourceUrl?: string;
+  /** Optional: where the operator's screen on invented markets is, a path or an address (VITE_VAULT_SCREEN). */
+  screenUrl?: string;
 };
 
 export type EnvResult = { ok: true; settings: VaultSettings } | { ok: false; missing: string[] };
@@ -77,12 +79,14 @@ export function readVaultEnv(env: Record<string, unknown>): EnvResult {
   // Two optional settings: left out, the page simply does not say them. A wrong one is left out too.
   const every = env.VITE_VAULT_ROUND_EVERY;
   const source = env.VITE_VAULT_SOURCE;
+  const screen = env.VITE_VAULT_SCREEN;
   return {
     ok: true,
     settings: {
       chainId, rpc, vault, relayer, explorer,
       ...(typeof every === "string" && /^[1-9]\d{1,5}$/.test(every) ? { roundEverySec: Number(every) } : {}),
       ...(typeof source === "string" && /^https:\/\//.test(source) ? { sourceUrl: source } : {}),
+      ...(typeof screen === "string" && /^(https:\/\/|\/[a-z])/.test(screen) ? { screenUrl: screen } : {}),
     },
   };
 }

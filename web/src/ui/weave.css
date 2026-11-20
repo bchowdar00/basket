@@ -448,3 +448,8 @@ table.pools thead th { position: sticky; top: 0; background: var(--linen); z-ind
 
 .screen-foot { margin: 28px 0 0; padding: 0 0 24px; font-size: 11px; line-height: 1.5; color: var(--ink-quiet); max-width: 110ch; }
 .calc-least-note { display: block; margin-top: 4px; }
+
+/* The public demo's note that the markets are invented: read before anything else on the page. */
+.sim-note { font-size: 13px; line-height: 1.5; color: var(--ink); background: var(--linen-2); border: 1px solid var(--cane); padding: 10px 14px; margin: 0 0 14px; max-width: 110ch; text-wrap: pretty; }
+.sim-note a { color: var(--indigo); text-underline-offset: 2px; }
+.alloc-simrun { margin: 12px 0; padding: 10px 12px; background: var(--linen-2); border: 1px solid var(--cane); }

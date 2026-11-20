@@ -78,6 +78,8 @@ export type VaultViewProps = {
   roundEverySec?: number | null;
   /** Where the source is, when the page was told. */
   sourceUrl?: string | null;
+  /** Where the operator's screen on invented markets is, when the page was told. */
+  screenUrl?: string | null;
 };
 
 /** A unix-seconds moment as a short UTC clock time. */
@@ -160,6 +162,9 @@ export function VaultView(p: VaultViewProps) {
           prediction markets. Depositors fund it. The contract caps what the operator may take, sets
           its deadline, and puts the operator’s own bond first in line for a loss.
         </p>
+        {p.screenUrl != null && (
+          <p className="vault-lede vault-try"><a className="vault-hash" href={p.screenUrl}>Try the operator’s allocator on invented markets</a></p>
+        )}
         <p className="vault-who">{p.vaultName !== "" && <>Vault: <span className="vault-addr">{p.vaultName}</span> · </>}Wallet: <span className="vault-addr">{short(p.address)}</span></p>
       </header>
 
@@ -269,7 +274,7 @@ export function VaultView(p: VaultViewProps) {
 
       <p className="vault-links">
         <a className="vault-hash" href={p.explorerBase + "/address/" + p.vaultAddress} target="_blank" rel="noreferrer">The contract on Arc’s explorer</a>
-        {p.sourceUrl != null && <> · <a className="vault-hash" href={p.sourceUrl} target="_blank" rel="noreferrer">Source and the operator’s screen</a></>}
+        {p.sourceUrl != null && <> · <a className="vault-hash" href={p.sourceUrl} target="_blank" rel="noreferrer">Source</a></>}
       </p>
 
       <TestMoneyBanner />
@@ -550,7 +555,7 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
       vaultName={vaultName ?? ""} vaultAddress={vaultRef.current} address={kit.current.wallet.address} data={data} step={step} nowSec={nowSec}
       deadlinePassed={deadlinePassed} explorerBase={settings.explorer} busy={busy} error={error} notice={notice}
       onPrimary={() => void runStep(step)} onDeclareDefault={() => void runDefault()}
-      rounds={rounds} roundEverySec={settings.roundEverySec ?? null} sourceUrl={settings.sourceUrl ?? null}
+      rounds={rounds} roundEverySec={settings.roundEverySec ?? null} sourceUrl={settings.sourceUrl ?? null} screenUrl={settings.screenUrl ?? null}
     />
   );
 }

@@ -10,6 +10,11 @@ import type { ListedEvent } from "../../../services/engine/src/gemini.ts";
 import { screenOf, type ScreenIn } from "../pools.ts";
 import { eventsToRead, poolsToRead, SKIP_CATEGORIES } from "./readall.ts";
 import { Screen } from "./Screen.tsx";
+import { simAt } from "../sim/markets.ts";
+
+/** The public demo: invented markets made in the browser, nothing asked of anybody. Set at build
+ * time (VITE_BASKET_SIM=1), or by `?sim` on the address of any build. */
+const SIM = (import.meta as { env?: Record<string, unknown> }).env?.VITE_BASKET_SIM === "1" || (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("sim"));
 
 /** Each sport pool's state, so two reads can be compared for what changed. */
 function statesOf(input: ScreenIn): Map<string, State> {
@@ -63,6 +68,12 @@ export function App() {
   const [runError, setRunError] = useState<string | null>(null);
   const stopRef = useRef(false);
   const source = (input as { source?: string } | null)?.source;
+  // The invented markets come with every pool's books: opening one asks nothing.
+  useEffect(() => {
+    if (openKey === null || source !== "sim") return;
+    const got = readPools.get(openKey);
+    if (got !== undefined) setOpened({ key: openKey, events: got.events, books: got.books, errors: [] });
+  }, [openKey, source, readPools]);
   useEffect(() => {
     if (openKey === null || source !== "live") return;
     let on = true;
@@ -90,9 +101,16 @@ export function App() {
     let live = true;
     async function load() {
       try {
-        const res = await fetch("/feed/screen");
-        if (!res.ok) throw new Error("the feed answered " + res.status);
-        const next = (await res.json()) as ScreenIn;
+        let next: ScreenIn;
+        if (SIM) {
+          const sim = simAt(Date.now());
+          next = sim.input;
+          setReadPools(sim.read);
+        } else {
+          const res = await fetch("/feed/screen");
+          if (!res.ok) throw new Error("the feed answered " + res.status);
+          next = (await res.json()) as ScreenIn;
+        }
         if (!live) return;
         const prev = last.current;
         const diff = new Set<string>();
@@ -116,8 +134,14 @@ export function App() {
       }
     }
     void load();
-    const feed = setInterval(() => void load(), 60_000);
-    const tick = setInterval(() => { if (live) setNowMs(Date.now()); }, 1_000);
+    // The invented markets are remade at each one-minute snapshot, on the mark; a feed is asked a minute after the last time.
+    let minute = Math.floor(Date.now() / 60_000);
+    const feed = setInterval(() => { if (!SIM) void load(); }, 60_000);
+    const tick = setInterval(() => {
+      if (!live) return;
+      setNowMs(Date.now());
+      if (SIM && Math.floor(Date.now() / 60_000) !== minute) { minute = Math.floor(Date.now() / 60_000); void load(); }
+    }, 1_000);
     return () => { live = false; clearInterval(feed); clearInterval(tick); };
   }, []);
 
@@ -152,7 +176,9 @@ export function App() {
   }
   function stopRun() { stopRef.current = true; }
 
-  const controls: ReactNode = source !== "live" ? undefined : (
+  const controls: ReactNode = source === "sim" ? (
+    <div className="alloc-run"><span>Every pool below is already read: the markets are invented and remade at each snapshot.</span></div>
+  ) : source !== "live" ? undefined : (
     <div className="alloc-run">
       {run === null && <button type="button" onClick={askRun}>Read every pool for the allocator</button>}
       {run !== null && run.phase === "confirm" && (
@@ -191,7 +217,15 @@ export function App() {
 
   return (
     <main className={"board" + ((input as { kept?: boolean } | null)?.kept === true ? " kept" : "")}>
-      {input !== null && <p className="source">{(input as { kept?: boolean }).kept === true ? "From the answers Gemini's public API gave this Mac earlier; nothing is asked of Gemini now" : source === "live" ? "Read from Gemini's public API by this Mac" : "From the forward run's recorded answers on this Mac; nothing is asked of Gemini"}</p>}
+      {input !== null && source === "sim" && (
+        <p className="source sim-note" role="note">
+          Demo on invented markets. Every pool, price, book and reward amount here is made up so that anyone can try the
+          screen, and they move at each one-minute snapshot. The scoring rule working on them is the real one. Nothing is
+          read from Gemini and nothing is sent to it. Set a budget, switch the stance, open a pool and move its sliders. The other half of Basket is the bonded vault an operator would draw that budget from:{" "}
+          <a href={(import.meta as { env?: Record<string, unknown> }).env?.BASE_URL === "/screen/" ? "/" : "/vault.html"}>open the vault</a>.
+        </p>
+      )}
+      {input !== null && source !== "sim" && <p className="source">{(input as { kept?: boolean }).kept === true ? "From the answers Gemini's public API gave this Mac earlier; nothing is asked of Gemini now" : source === "live" ? "Read from Gemini's public API by this Mac" : "From the forward run's recorded answers on this Mac; nothing is asked of Gemini"}</p>}
       {opened !== null && opened.key === openKey && opened.errors.length > 0 && <p className="error" role="alert">not everything in this pool could be read: {opened.errors.join("; ")}</p>}
       {error !== null && <p className="error" role="alert">could not read the feed: {error}</p>}
       {input !== null
@@ -201,7 +235,7 @@ export function App() {
             settings={input.settings} steps={steps}
             qty={qty ?? input.settings.minSize} spreadCents={spreadCents ?? input.settings.maxSpreadCents}
             onQty={setQty} onSpread={setSpreadCents}
-            readPools={readPools} budgetUsd={budgetUsd} stance={stance} onBudget={setBudgetUsd} onStance={setStance} controls={controls}
+            readPools={readPools} budgetUsd={budgetUsd} stance={stance} onBudget={setBudgetUsd} onStance={setStance} controls={controls} sim={source === "sim"}
             books={opened !== null && opened.key === openKey ? opened.books : undefined} pending={pending !== null && pending === openKey} extra={extra} unreadLeft={unreadLeft}
           />
         : error === null && <p className="waiting">reading the feed…</p>}

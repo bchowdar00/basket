@@ -5,7 +5,7 @@
 // The words that go with every reward figure stand once, at the foot of the screen this sits in
 // (decided 2026-11-19: one footnote).
 
-import { useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { CSSProperties } from "react";
 import type { Book, Settings } from "@app/score";
 import { allocate, toAllocPool, type AllocPool, type ReadEvent, type Stance } from "../alloc.ts";
@@ -23,6 +23,8 @@ type Props = {
   onBudget: (n: number) => void;
   onStance: (s: Stance) => void;
   controls?: ReactNode; // the read-every-pool controls; App drives them, so they pass through here
+  /** On invented markets (the public demo): the minute now, so each snapshot can be scored as it passes. */
+  simMinute?: number;
 };
 
 const SENTENCE =
@@ -52,7 +54,28 @@ function work(settings: Settings, sport: PoolView[], readPools: Props["readPools
   return { alloc: allocate(settings, okPools, budget * 1_000_000, stance), refused };
 }
 
-export function Allocator({ settings, sport, readPools, budgetUsd, stance, onBudget, onStance, controls }: Props) {
+/** The public demo's running tally: at each one-minute snapshot the quotes as they stand are
+ * credited their least share of that minute, and the sum since the page was opened is shown. It is
+ * arithmetic on invented books, said so beside it; nothing is placed and nothing is earned. */
+function SimRun({ minute, leastMicrosADay }: { minute: number; leastMicrosADay: number }) {
+  const [tally, setTally] = useState({ snapshots: 0, micros: 0 });
+  const least = useRef(leastMicrosADay);
+  least.current = leastMicrosADay;
+  const first = useRef(minute);
+  useEffect(() => {
+    if (minute === first.current) return; // the minute the page opened in has not reached its snapshot
+    setTally((t) => ({ snapshots: t.snapshots + 1, micros: t.micros + least.current / 1440 }));
+  }, [minute]);
+  return (
+    <div className="alloc-simrun" role="status">
+      <p className="alloc-figure">{"Simulated run: " + tally.snapshots + (tally.snapshots === 1 ? " snapshot" : " snapshots") + " scored since you opened this page"}</p>
+      <p className="alloc-figure">{"Least credit so far: $" + (tally.micros / 1_000_000).toFixed(4)}</p>
+      <p className="alloc-assumption">At each snapshot the quotes above are credited their least share of that minute. Change the budget or the stance and the next snapshot scores the new quotes. Invented markets: nothing is placed and nothing is earned.</p>
+    </div>
+  );
+}
+
+export function Allocator({ settings, sport, readPools, budgetUsd, stance, onBudget, onStance, controls, simMinute }: Props) {
   const header = (
     <header className="alloc-head">
       <h2 className="alloc-name">ALLOCATOR</h2>
@@ -124,6 +147,7 @@ export function Allocator({ settings, sport, readPools, budgetUsd, stance, onBud
         <p className="alloc-under" role="note">{"Under Gemini's least payment of $" + dollars(settings.minPayoutMicros) + " a day: a day's total below it is not distributed."}</p>
       )}
       <p className="alloc-assumption">{ASSUMPTION}</p>
+      {simMinute !== undefined && <SimRun minute={simMinute} leastMicrosADay={alloc.leastMicrosADay} />}
       {read > 0 && <p className="alloc-assumption">The oldest books worked from here were read {oldestMin < 1 ? "under a minute" : oldestMin + " min"} ago.</p>}
       </div>
 

@@ -17,7 +17,7 @@
 		rewrite / /vault.html
 		# The page itself is asked for again each time, so a new build is seen at once; its files carry
 		# their content's hash in their names and can be kept.
-		@page path / /vault.html
+		@page path / /vault.html /screen/ /screen/index.html
 		header @page Cache-Control no-cache
 		file_server
 	}

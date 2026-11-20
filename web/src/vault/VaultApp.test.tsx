@@ -230,7 +230,7 @@ test("the page opens with what the vault is, lists how it works, and shows a rec
   const html = decode(renderToStaticMarkup(
     <VaultView vaultName="stage" vaultAddress={VAULT_AT} address={ADDR} data={d} step={stepFrom(d, 1_000)} nowSec={1_000}
       deadlinePassed={false} explorerBase={EXPLORER} busy={false} error={null} notice={null} onPrimary={() => {}} onDeclareDefault={() => {}}
-      rounds={[round]} roundEverySec={900} sourceUrl="https://source.example/basket" />,
+      rounds={[round]} roundEverySec={900} sourceUrl="https://source.example/basket" screenUrl="/screen/" />,
   ));
   expect(html.indexOf("puts the operator’s own bond first in line for a loss")).toBeLessThan(html.indexOf("in the vault"));
   expect(html).toContain("How it works");
@@ -240,6 +240,7 @@ test("the page opens with what the vault is, lists how it works, and shows a rec
   expect(html).toContain(EXPLORER + "/tx/" + HASH);
   expect(html).toContain("The next opens in about 5 min.");
   expect(html).toContain("https://source.example/basket");
+  expect(html).toContain('href="/screen/"');
 });
 
 test("the rounds line: open with its time left, closed with no guess when the page was told nothing, and closed for good after a default", () => {
