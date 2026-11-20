@@ -220,7 +220,7 @@ export function App({ sim: simProp, vaultHref, shared }: { sim?: boolean; vaultH
   const isShared = (input as { shared?: boolean } | null)?.shared === true;
   const hhmm = (ms: number) => new Date(ms).toISOString().slice(11, 16) + " UTC";
   const controls: ReactNode = isShared ? (
-    <div className="alloc-run"><span>{passNote === null ? "" : passNote.note !== null ? passNote.note : passNote.finishedAtMs === null ? "Basket’s server is reading Gemini now, one request every 1.2 seconds: " + passNote.done + " of " + passNote.total + " pools so far" : readPools.size + " of " + passNote.total + " pools read by Basket’s server; that read ended at " + hhmm(passNote.finishedAtMs)}</span></div>
+    <div className="alloc-run"><span>{passNote === null ? "" : passNote.note !== null ? readPools.size + " pools held from Basket’s server’s earlier reads; its last read did not finish and it tries again shortly" : passNote.finishedAtMs === null ? "Basket’s server is reading Gemini now, one request every 1.2 seconds: " + passNote.done + " of " + passNote.total + " pools so far" : readPools.size + " of " + passNote.total + " pools read by Basket’s server; that read ended at " + hhmm(passNote.finishedAtMs)}</span></div>
   ) : source === "sim" ? (
     vaultHref !== undefined ? undefined : <div className="alloc-run"><span>Every pool below is already read: the markets are invented and remade at each snapshot.</span></div>
   ) : source !== "live" ? undefined : (
