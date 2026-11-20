@@ -6,6 +6,7 @@ import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 
 import { App } from "../screen/App.tsx";
+import { Example } from "./Example.tsx";
 import { MissingSettings, readVaultEnv } from "../vault/main.tsx";
 import { VaultApp } from "../vault/VaultApp.tsx";
 import "../ui/weave.css";
@@ -25,6 +26,7 @@ export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
       <nav className="site-nav" aria-label="the steps">
         <a className="site-mark" href="#top">BASKET</a>
         <ol className="site-nav-steps">
+          <li><a href="#example">Example</a></li>
           {STEPS.map((s, i) => <li key={s.href}><a href={s.href}>{(i + 1) + ". " + s.name}</a></li>)}
         </ol>
       </nav>
@@ -54,6 +56,8 @@ export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
           on any exchange.
         </p>
       </header>
+
+      <Example />
 
       <section id="plan" className="site-section" aria-labelledby="plan-h">
         <h2 id="plan-h" className="site-h">1. Plan a budget</h2>

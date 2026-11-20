@@ -35,7 +35,7 @@ export type Alloc = {
   tiedMicros: number; worstLossMicros: number; leastMicrosADay: number; budgetMicros: number;
 };
 
-function restingPair(s: Settings, c: AllocContract, stance: Stance): Pair | null {
+export function restingPair(s: Settings, c: Pick<AllocContract, "top" | "stepCents">, stance: Stance): Pair | null {
   const { bidCents: b, askCents: a } = c.top;
   if (stance === "join" && b !== null && a !== null && a > b && a - b <= s.maxSpreadCents) {
     return { bid: { cents: b, qty: s.minSize }, ask: { cents: a, qty: s.minSize } };

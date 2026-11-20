@@ -4,7 +4,7 @@ Basket has two halves. The first is an operator's screen on Gemini Prediction Ma
 
 What it is not: it is not a trading bot. It places no order on any exchange and holds no exchange key. The operator is simulated. All money on chain is test USDC on Arc's test network and has no value, and every round in the demo closes with a simulated result.
 
-- **The demo, one page:** https://basket-ubc.westus.azurecontainer.io/ It is laid out in the order a person would use it. Step 1, plan a budget: the allocator and the pool calculator, on Gemini's live reward pools and books when the page's server has read them, and on invented markets otherwise; a line says which and a button switches. Steps 2 to 4, the vault on Arc's test network: add funds, allow, deposit (no app or wallet needed); watch a round (one opens by itself about every ten minutes and closes about thirty seconds later with a small made-up gain; the vault's round length is five minutes, which is the operator's deadline); and the safety net, the bond and the default anyone may declare. `/vault.html` on the same address is the vault alone, for a phone.
+- **The demo, one page:** https://basket-ubc.westus.azurecontainer.io/ It is laid out in the order a person would use it. It opens with a worked example, a sports bar in Buffalo: the contracts in pools the reader holds that would pay out if Buffalo falls short, how many are resting on Gemini's book to take, what they would cost, and what a least-size bid on each would add (a calculation on public books; the other side of a contract is priced as a dollar less each resting bid, and Gemini's trading and margin rules were not read). Step 1, plan a budget: the allocator and the pool calculator, on Gemini's live reward pools and books when the page's server has read them, and on invented markets otherwise; a line says which and a button switches. Steps 2 to 4, the vault on Arc's test network: add funds, allow, deposit (no app or wallet needed); watch a round (one opens by itself about every ten minutes and closes about thirty seconds later with a small made-up gain; the vault's round length is five minutes, which is the operator's deadline); and the safety net, the bond and the default anyone may declare. `/vault.html` on the same address is the vault alone, for a phone.
 - **Video:** [link to be supplied]
 
 ## 1. What it does
@@ -50,7 +50,7 @@ Open the address Vite prints. `BASKET_FEED` chooses where the screen's figures c
 cd web && npx vite build -c vite.public.config.ts
 ```
 
-**The one page** is `web/site.html` (`web/src/site`), built by the same command. Its first step is the operator's screen. On the public address it asks the shared reader (`services/screen`) for Gemini's lists and every pool's books; where that has nothing yet it shows invented markets instead, made in the browser by `web/src/sim/markets.ts`: eighteen made-up pools whose books are worked out from the minute alone, so every visitor sees the same markets and they move at each snapshot. On the invented markets it keeps a running tally: at each snapshot the allocator's quotes are credited their least share of that minute. Add `?sim` to the dev server's address to see the invented markets alone.
+**The one page** is `web/site.html` (`web/src/site`), built by the same command. Its worked example (`web/src/site/example.ts`) finds its contracts by name in what the shared reader holds and says so when they are not there. Its first step is the operator's screen. On the public address it asks the shared reader (`services/screen`) for Gemini's lists and every pool's books; where that has nothing yet it shows invented markets instead, made in the browser by `web/src/sim/markets.ts`: eighteen made-up pools whose books are worked out from the minute alone, so every visitor sees the same markets and they move at each snapshot. On the invented markets it keeps a running tally: at each snapshot the allocator's quotes are credited their least share of that minute. Add `?sim` to the dev server's address to see the invented markets alone.
 
 **The shared reader** is `services/screen`: one server that reads Gemini's public API for every visitor, through the same paced reader as the operator's own screen (1.2 seconds between requests, a minute's stop after a 429, every raw answer kept in a folder outside the repository). A pass over the reward list and every pool takes about thirty minutes; a new one begins no sooner than 75 minutes after the last began, and only if somebody has opened the page in the last six hours. A visitor's request is answered from its memory and never causes a request to Gemini.
 
@@ -189,7 +189,7 @@ AI tools were used to write and review code throughout the week.
 `npm test` from the root, and `npm test --prefix services/relayer`. Counts as of 2026-11-20:
 
 - `packages/score`, `packages/rule`, `packages/ledger` (`node --test`): 31, 32, 52
-- `web` (Vitest): 175
+- `web` (Vitest): 180
 - `contracts` (Hardhat, local chain): 71
 - `services/engine` (`node --test`): 107
 - `services/relayer` (`node --test`): 61

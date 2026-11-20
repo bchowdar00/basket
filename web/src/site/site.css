@@ -196,3 +196,10 @@ html { scroll-behavior: smooth; scroll-padding-top: 64px; }
   .plan-stance label { flex: 1 1 100%; padding: 0 12px; }
   .plan-stance label + label { border-left: 1px solid var(--ink); border-top: 0; }
 }
+
+/* The worked example: one box to type in, four figures, one table. */
+.ex-want { display: block; margin: 0 0 20px; }
+.ex-want .plan-money input { width: 7ch; }
+.ex-table .ex-add { color: var(--indigo); }
+.ex-note { max-width: 110ch; line-height: 1.55; }
+@media (max-width: 520px) { .ex-want .plan-money input { width: 100%; } }
