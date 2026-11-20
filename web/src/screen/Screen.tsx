@@ -82,11 +82,11 @@ export function Screen({ screen, nowMs, openKey, onOpen, changed, settings, step
           <span className="count-label">{sim === true ? " seconds to the next snapshot" : " seconds to Gemini's next snapshot"}</span>
         </p>
         <p className="figure f3">
-          {program.pools + " pools, $" + dollars(program.microsADay) + " a day in all, each counted once, by the list's own pool ids"}
+          {sim === true ? program.pools + " invented reward pools, $" + dollars(program.microsADay) + " a day between them" : program.pools + " pools, $" + dollars(program.microsADay) + " a day in all, each counted once, by the list's own pool ids"}
         </p>
         {now.of + now.live > 0 && <p className="figure f2">
-          {"In " + now.none + " of " + now.of + " events read, the listed prices hold no qualifying pair at this read"}
-          <span className="live-note">{". " + now.live + " in play, not scored from the list"}</span>
+          {sim === true ? "In " + now.none + " of " + now.of + " events nobody is quoting close enough to the middle to qualify right now" : "In " + now.none + " of " + now.of + " events read, the listed prices hold no qualifying pair at this read"}
+          {(sim !== true || now.live > 0) && <span className="live-note">{". " + now.live + " in play, not scored from the list"}</span>}
         </p>}
       </header>
       <Allocator

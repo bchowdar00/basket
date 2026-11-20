@@ -80,6 +80,8 @@ export type VaultViewProps = {
   sourceUrl?: string | null;
   /** Where the operator's screen on invented markets is, when the page was told. */
   screenUrl?: string | null;
+  /** Laid out as steps two to four of the one-page site, without the page's own name and opening. */
+  site?: boolean;
 };
 
 /** A unix-seconds moment as a short UTC clock time. */
@@ -153,6 +155,208 @@ export function VaultView(p: VaultViewProps) {
         </button>
       </section>
   );
+  const who = (
+    <p className="vault-who">{p.vaultName !== "" && <>Vault: <span className="vault-addr">{p.vaultName}</span> · </>}Wallet: <span className="vault-addr">{short(p.address)}</span></p>
+  );
+  const alerts = (
+    <>
+      {p.error !== null && <p className="error" role="alert">{p.error}</p>}
+      {p.notice !== null && <p className="vault-notice" role="status">{p.notice}</p>}
+    </>
+  );
+  const hold = (
+    <section className="vault-hold" aria-label="what you hold">
+      <p className="vault-figure f1"><span className="vault-amount">${fmtUsd(d.worth)}</span> <span className="vault-amount-of">in the vault</span></p>
+      {d.claimable > 0n && <p className="vault-figure">Ready to claim: ${fmtUsd(d.claimable)}</p>}
+      {d.waiting > 0n && <p className="vault-figure">Waiting in this round: ${fmtUsd(d.waiting)} (becomes shares at the round’s end)</p>}
+      {d.epoch.open && d.epoch.drawn > 0n && (
+        <p className="vault-figure vault-out">Out with the operator this round: ${fmtUsd(d.epoch.drawn)} of the vault’s. The figure above leaves it out until the round ends; the bond stands behind it.</p>
+      )}
+      <p className="vault-figure f3">In your wallet: ${fmtUsd(d.balance)}</p>
+    </section>
+  );
+  const urgentBlock = urgent && (
+    <section className="vault-default vault-default-live" aria-label="the operator missed the deadline">
+      <h2 className="vault-terms-head">The operator missed the deadline</h2>
+      <p className="vault-figure">
+        This round’s deadline has passed and the operator has not settled. Anyone may declare a
+        default now: the whole bond of ${fmtUsd(d.bond)} moves to the vault for
+        depositors, and the vault closes.
+      </p>
+      <button type="button" className="vault-declare" data-declare="" disabled={p.busy} onClick={p.onDeclareDefault}>
+        Declare the operator in default
+      </button>
+    </section>
+  );
+  const doneBlock = d.epoch.defaulted && (
+    <section className="vault-default vault-default-done" aria-label="the operator is in default">
+      <h2 className="vault-terms-head">The operator is in default</h2>
+      <p className="vault-figure">
+        A default was declared in round {d.epoch.id.toString()}. The operator’s whole bond moved
+        to the vault for depositors, and the vault is closed: nothing more can be deposited, and
+        what you hold can be withdrawn.
+      </p>
+    </section>
+  );
+  const stepBlock = (
+    <section className="vault-step" aria-label="your next step">
+      <p className="vault-step-sentence">{p.step.sentence}</p>
+      {label !== null && (
+        <button type="button" className="vault-primary" data-primary="" disabled={p.busy} onClick={p.onPrimary}>
+          {p.busy ? "Working…" : label}
+        </button>
+      )}
+    </section>
+  );
+  const closedRounds = (p.rounds ?? []).filter((r) => r.end !== null);
+  const roundsBody = (
+    <>
+      <p className="vault-round-sim" role="note">
+        Demo rounds. The stand-in operator sends back what it drew with a small made-up gain, so
+        the mechanics can be seen. No order was placed on any exchange and no reward was received.
+      </p>
+      <p className="vault-figure vault-round-now" data-round-now="">{roundStatus(d, p.rounds ?? null, p.roundEverySec ?? null, p.nowSec)}</p>
+      {closedRounds.length > 0 && (
+        <ol className="vault-round-list" aria-label="recent rounds">
+          {closedRounds.slice(0, 5).map((r) => <RoundRow key={r.id.toString()} r={r} explorerBase={p.explorerBase} />)}
+        </ol>
+      )}
+    </>
+  );
+  const howList = (
+    <ol className="vault-how-list">
+      <li>You deposit. Your money sits in the contract, not with the operator.</li>
+      <li>To open a round the operator puts the hash of its plan on chain, then may draw up to the draw limit, and no more.</li>
+      <li>It must send the money back before the deadline. A gain lifts what you hold; a loss comes out of the operator’s bond first.</li>
+      <li>If the deadline passes unsettled, anyone may declare a default. The whole bond moves to depositors.</li>
+    </ol>
+  );
+  const termsList = (
+    <dl className="vault-terms-list">
+      <dt>Draw limit</dt>
+      <dd>${fmtUsd(d.maxDraw)}, the most the operator may draw for one round: the lesser of ${fmtUsd(d.byBond)} by its bond and ${fmtUsd(d.byVault)} by the vault’s size</dd>
+      <dt>Bond</dt>
+      <dd>${fmtUsd(d.bond)} posted by the operator, first to take a loss</dd>
+      <dt>Cap</dt>
+      <dd>${fmtUsd(d.cap)} in all (${fmtUsd(d.room + 5_000n)} of room left)</dd>
+      <dt>Round length</dt>
+      <dd>{Number(d.epochSeconds) % 60 === 0 && Number(d.epochSeconds) >= 120 ? (Number(d.epochSeconds) / 60).toString() + " minutes" : d.epochSeconds.toString() + " seconds"}{d.epoch.open ? ", " + timeLeft(d.epoch.deadline, p.nowSec) : ", no round open now"}</dd>
+      {d.epoch.open && (
+        <>
+          <dt>This round ends</dt>
+          <dd>{whenLocalUtc(d.epoch.deadline)}</dd>
+        </>
+      )}
+      <dt>Fee on a gain</dt>
+      <dd>{feePct}% of any gain goes to the operator; the rest stays with the vault</dd>
+    </dl>
+  );
+  const commitsBody = hasCommits ? (
+    <p className="vault-figure">
+      {d.commits.toString()} so far. Last hash:{" "}
+      <a className="vault-hash" href={p.explorerBase + "/address/" + p.vaultAddress} target="_blank" rel="noreferrer">
+        {d.head.slice(0, 10)}…{d.head.slice(-6)}
+      </a>
+    </p>
+  ) : (
+    <p className="vault-figure">No commits yet.</p>
+  );
+  const links = (
+    <p className="vault-links">
+      <a className="vault-hash" href={p.explorerBase + "/address/" + p.vaultAddress} target="_blank" rel="noreferrer">The contract on Arc’s explorer</a>
+      {p.sourceUrl != null && <> · <a className="vault-hash" href={p.sourceUrl} target="_blank" rel="noreferrer">Source</a></>}
+    </p>
+  );
+
+  // On the one-page site the same pieces are laid out as its steps two to four, each under its own
+  // heading; the page's own name, opening paragraph and step one stand above them.
+  if (p.site === true) {
+    return (
+      <div className="vault vault-site">
+        <section id="fund" className="site-section" aria-labelledby="fund-h">
+          <h2 id="fund-h" className="site-h">2. Fund the vault</h2>
+          <div className="site-cols">
+            <div className="site-col">
+              <p className="site-say">
+                Who would hand an operator that budget? Here depositors put money into a contract
+                instead, and the operator may only borrow from it under the limits on the right.
+                Try it with test dollars: add funds, allow the vault, deposit. No wallet app is
+                needed; this page keeps a test wallet in your browser and a relayer pays the
+                network fees.
+              </p>
+              {alerts}
+              {urgentBlock}
+              {doneBlock}
+              <div className="site-panel">
+                <ol className="site-taps" aria-label="the three taps">
+                  {(["Add funds", "Allow the vault", "Deposit"] as const).map((name, i) => {
+                    const at = p.step.kind === "handout" ? 0 : p.step.kind === "approve" ? 1 : p.step.kind === "deposit" ? 2 : d.shares > 0n || d.waiting > 0n ? 3 : -1;
+                    return <li key={name} className={at === i ? "now" : at > i ? "done" : ""} aria-current={at === i ? "step" : undefined}>{name}</li>;
+                  })}
+                </ol>
+                {who}
+                {hold}
+                {stepBlock}
+              </div>
+            </div>
+            <div className="site-col">
+              <h3 className="vault-terms-head">The limits the contract holds the operator to</h3>
+              {termsList}
+            </div>
+          </div>
+        </section>
+
+        <section id="rounds" className="site-section" aria-labelledby="rounds-h">
+          <h2 id="rounds-h" className="site-h">3. Watch a round</h2>
+          <div className="site-cols">
+            <div className="site-col">
+              <p className="site-say">
+                The operator works in rounds. Your holding in step 2 moves when a round closes, and
+                each closed round is listed here with its transaction.
+              </p>
+              {howList}
+            </div>
+            <div className="site-col vault-rounds">
+              {roundsBody}
+            </div>
+          </div>
+        </section>
+
+        <section id="safety" className="site-section" aria-labelledby="safety-h">
+          <h2 id="safety-h" className="site-h">4. The safety net</h2>
+          <div className="site-cols">
+            <div className="site-col">
+              <p className="site-say">
+                The operator has ${fmtUsd(d.bond)} of its own money posted as a bond. A loss comes
+                out of that first. If a round passes its deadline unsettled, nobody has to ask
+                permission: anyone, from this page, can declare a default, and the whole bond moves
+                to depositors.
+              </p>
+              {!urgent && !d.epoch.defaulted && (
+                <>
+                  <button type="button" className="vault-declare" data-declare="" disabled={!p.deadlinePassed || p.busy} onClick={p.onDeclareDefault}>
+                    Declare the operator in default
+                  </button>
+                  <p className="site-quiet">This button wakes only when a round is open past its deadline.</p>
+                </>
+              )}
+              {urgent && <p className="site-quiet">The deadline has passed: the button is at the top of step 2.</p>}
+            </div>
+            <div className="site-col">
+              <h3 className="vault-terms-head">The record on chain</h3>
+              <p className="site-say">Before each round the operator names the hash of its plan on chain, so what it said it would do cannot be rewritten afterwards.</p>
+              {(p.rounds ?? []).length > 0 && <p className="vault-figure">Plan named for round {(p.rounds ?? [])[0].id.toString()}: <span className="vault-addr">{(p.rounds ?? [])[0].plan.slice(0, 14)}…{(p.rounds ?? [])[0].plan.slice(-8)}</span></p>}
+              {hasCommits && commitsBody}
+              {links}
+            </div>
+          </div>
+        </section>
+
+        <TestMoneyBanner />
+      </div>
+    );
+  }
+
   return (
     <main className="vault">
       <header className="vault-head">
@@ -166,121 +370,41 @@ export function VaultView(p: VaultViewProps) {
         {p.screenUrl != null && (
           <p className="vault-lede vault-try"><a className="vault-hash" href={p.screenUrl}>Try the operator’s allocator on invented markets</a></p>
         )}
-        <p className="vault-who">{p.vaultName !== "" && <>Vault: <span className="vault-addr">{p.vaultName}</span> · </>}Wallet: <span className="vault-addr">{short(p.address)}</span></p>
+        {who}
       </header>
 
-      {p.error !== null && <p className="error" role="alert">{p.error}</p>}
-      {p.notice !== null && <p className="vault-notice" role="status">{p.notice}</p>}
+      {alerts}
 
-      <section className="vault-hold" aria-label="what you hold">
-        <p className="vault-figure f1"><span className="vault-amount">${fmtUsd(d.worth)}</span> <span className="vault-amount-of">in the vault</span></p>
-        {d.claimable > 0n && <p className="vault-figure">Ready to claim: ${fmtUsd(d.claimable)}</p>}
-        {d.waiting > 0n && <p className="vault-figure">Waiting in this round: ${fmtUsd(d.waiting)} (becomes shares at the round’s end)</p>}
-        {d.epoch.open && d.epoch.drawn > 0n && (
-          <p className="vault-figure vault-out">Out with the operator this round: ${fmtUsd(d.epoch.drawn)} of the vault’s. The figure above leaves it out until the round ends; the bond stands behind it.</p>
-        )}
-        <p className="vault-figure f3">In your wallet: ${fmtUsd(d.balance)}</p>
-      </section>
+      {hold}
 
-      {urgent && (
-        <section className="vault-default vault-default-live" aria-label="the operator missed the deadline">
-          <h2 className="vault-terms-head">The operator missed the deadline</h2>
-          <p className="vault-figure">
-            This round’s deadline has passed and the operator has not settled. Anyone may declare a
-            default now: the whole bond of ${fmtUsd(d.bond)} moves to the vault for
-            depositors, and the vault closes.
-          </p>
-          <button type="button" className="vault-declare" data-declare="" disabled={p.busy} onClick={p.onDeclareDefault}>
-            Declare the operator in default
-          </button>
-        </section>
-      )}
-      {d.epoch.defaulted && (
-        <section className="vault-default vault-default-done" aria-label="the operator is in default">
-          <h2 className="vault-terms-head">The operator is in default</h2>
-          <p className="vault-figure">
-            A default was declared in round {d.epoch.id.toString()}. The operator’s whole bond moved
-            to the vault for depositors, and the vault is closed: nothing more can be deposited, and
-            what you hold can be withdrawn.
-          </p>
-        </section>
-      )}
+      {urgentBlock}
+      {doneBlock}
 
-      <section className="vault-step" aria-label="your next step">
-        <p className="vault-step-sentence">{p.step.sentence}</p>
-        {label !== null && (
-          <button type="button" className="vault-primary" data-primary="" disabled={p.busy} onClick={p.onPrimary}>
-            {p.busy ? "Working…" : label}
-          </button>
-        )}
-      </section>
+      {stepBlock}
 
       <section className="vault-rounds" aria-label="rounds">
         <h2 className="vault-terms-head">Rounds</h2>
-        <p className="vault-round-sim" role="note">
-          Demo rounds. The stand-in operator sends back what it drew with a small made-up gain, so
-          the mechanics can be seen. No order was placed on any exchange and no reward was received.
-        </p>
-        <p className="vault-figure vault-round-now" data-round-now="">{roundStatus(d, p.rounds ?? null, p.roundEverySec ?? null, p.nowSec)}</p>
-        {p.rounds != null && p.rounds.filter((r) => r.end !== null).length > 0 && (
-          <ol className="vault-round-list" aria-label="recent rounds">
-            {p.rounds.filter((r) => r.end !== null).slice(0, 5).map((r) => <RoundRow key={r.id.toString()} r={r} explorerBase={p.explorerBase} />)}
-          </ol>
-        )}
+        {roundsBody}
       </section>
 
       <section className="vault-how" aria-label="how it works">
         <h2 className="vault-terms-head">How it works</h2>
-        <ol className="vault-how-list">
-          <li>You deposit. Your money sits in the contract, not with the operator.</li>
-          <li>To open a round the operator puts the hash of its plan on chain, then may draw up to the limit below, and no more.</li>
-          <li>It must send the money back before the deadline. A gain lifts what you hold; a loss comes out of the operator’s bond first.</li>
-          <li>If the deadline passes unsettled, anyone may declare a default. The whole bond moves to depositors.</li>
-        </ol>
+        {howList}
       </section>
 
       <section className="vault-terms" aria-label="the vault's terms">
         <h2 className="vault-terms-head">The vault’s terms</h2>
-        <dl className="vault-terms-list">
-          <dt>Draw limit</dt>
-          <dd>${fmtUsd(d.maxDraw)}, the most the operator may draw for one round: the lesser of ${fmtUsd(d.byBond)} by its bond and ${fmtUsd(d.byVault)} by the vault’s size</dd>
-          <dt>Bond</dt>
-          <dd>${fmtUsd(d.bond)} posted by the operator, first to take a loss</dd>
-          <dt>Cap</dt>
-          <dd>${fmtUsd(d.cap)} in all (${fmtUsd(d.room + 5_000n)} of room left)</dd>
-          <dt>Round length</dt>
-          <dd>{Number(d.epochSeconds) % 60 === 0 && Number(d.epochSeconds) >= 120 ? (Number(d.epochSeconds) / 60).toString() + " minutes" : d.epochSeconds.toString() + " seconds"}{d.epoch.open ? ", " + timeLeft(d.epoch.deadline, p.nowSec) : ", no round open now"}</dd>
-          {d.epoch.open && (
-            <>
-              <dt>This round ends</dt>
-              <dd>{whenLocalUtc(d.epoch.deadline)}</dd>
-            </>
-          )}
-          <dt>Fee on a gain</dt>
-          <dd>{feePct}% of any gain goes to the operator; the rest stays with the vault</dd>
-        </dl>
+        {termsList}
       </section>
 
       <section className="vault-commits" aria-label="commits">
         <h2 className="vault-terms-head">Commits</h2>
-        {hasCommits ? (
-          <p className="vault-figure">
-            {d.commits.toString()} so far. Last hash:{" "}
-            <a className="vault-hash" href={p.explorerBase + "/address/" + p.vaultAddress} target="_blank" rel="noreferrer">
-              {d.head.slice(0, 10)}…{d.head.slice(-6)}
-            </a>
-          </p>
-        ) : (
-          <p className="vault-figure">No commits yet.</p>
-        )}
+        {commitsBody}
       </section>
 
       {!urgent && !d.epoch.defaulted && quietDefault}
 
-      <p className="vault-links">
-        <a className="vault-hash" href={p.explorerBase + "/address/" + p.vaultAddress} target="_blank" rel="noreferrer">The contract on Arc’s explorer</a>
-        {p.sourceUrl != null && <> · <a className="vault-hash" href={p.sourceUrl} target="_blank" rel="noreferrer">Source</a></>}
-      </p>
+      {links}
 
       <TestMoneyBanner />
     </main>
@@ -325,7 +449,7 @@ const SENT = "Sent. It takes a moment to land.";
 
 /** The container: wires one browser wallet, the relayer and a vault reader together, works out the
  * one next step and runs it. */
-export function VaultApp({ settings }: { settings: VaultSettings }) {
+export function VaultApp({ settings, site }: { settings: VaultSettings; site?: boolean }) {
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -551,6 +675,19 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
     return () => { on = false; };
   }, [roundKey, epochSeconds]);
 
+  if (site === true && (kit.current === null || data === null)) {
+    // On the one-page site the vault's part keeps its place and heading while it is read, or says why it cannot be.
+    const why = kit.current === null ? (keyError.current ?? error ?? "This browser cannot keep a wallet. Open the page in the phone's own browser, not a private tab.") : error;
+    return (
+      <div className="vault vault-site">
+        <section id="fund" className="site-section" aria-labelledby="fund-h">
+          <h2 id="fund-h" className="site-h">2. Fund the vault</h2>
+          {why !== null ? <p className="error" role="alert">{why}</p> : <p className="vault-waiting">Reading the vault…</p>}
+        </section>
+        <TestMoneyBanner />
+      </div>
+    );
+  }
   if (kit.current === null) return <CannotKeepWallet error={keyError.current ?? error} />;
   if (data === null) return <Reading error={error} />;
 
@@ -566,7 +703,7 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
       vaultName={vaultName ?? ""} vaultAddress={vaultRef.current} address={kit.current.wallet.address} data={data} step={step} nowSec={nowSec}
       deadlinePassed={deadlinePassed} explorerBase={settings.explorer} busy={busy} error={error} notice={notice}
       onPrimary={() => void runStep(step)} onDeclareDefault={() => void runDefault()}
-      rounds={rounds} roundEverySec={settings.roundEverySec ?? null} sourceUrl={settings.sourceUrl ?? null} screenUrl={settings.screenUrl ?? null}
+      rounds={rounds} roundEverySec={settings.roundEverySec ?? null} sourceUrl={settings.sourceUrl ?? null} screenUrl={settings.screenUrl ?? null} site={site}
     />
   );
 }

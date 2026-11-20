@@ -252,3 +252,25 @@ test("the rounds line: open with its time left, closed with no guess when the pa
   const gone = data({ epoch: { ...data().epoch, id: 3n, defaulted: true } });
   expect(roundStatus(gone, null, 600, 1_000)).toContain("a default was declared in round 3");
 });
+
+// 2026-11-20: the one-page site lays the same pieces out as its steps two to four.
+test("laid out for the one page: three headed steps in order, the tap in hand marked, no second page name, the foot note once", () => {
+  const d = data({ balance: 55n * USD });
+  const html = decode(renderToStaticMarkup(
+    <VaultView vaultName="stage" vaultAddress={VAULT_AT} address={ADDR} data={d} step={stepFrom(d, 1_000)} nowSec={1_000}
+      deadlinePassed={false} explorerBase={EXPLORER} busy={false} error={null} notice={null} onPrimary={() => {}} onDeclareDefault={() => {}} site />,
+  ));
+  const at = (t: string) => html.indexOf(t);
+  expect(at('id="fund"')).toBeGreaterThan(-1);
+  expect(at('id="fund"')).toBeLessThan(at('id="rounds"'));
+  expect(at('id="rounds"')).toBeLessThan(at('id="safety"'));
+  expect(html).not.toContain("<h1");
+  expect(html).not.toContain("<main");
+  const taps = html.slice(html.indexOf("site-taps"), html.indexOf("</ol>", html.indexOf("site-taps")));
+  expect(taps).toContain('class="done">Add funds');
+  expect(taps).toMatch(/class="now"[^>]*>Allow the vault/);
+  expect(taps).toMatch(/class=""[^>]*>Deposit|<li>Deposit/);
+  expect(html).toContain("data-primary");
+  expect(html).toContain("data-declare");
+  expect(html.split("Balances are test USDC with no real value").length).toBe(2);
+});

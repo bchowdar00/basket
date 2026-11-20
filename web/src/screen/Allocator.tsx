@@ -138,13 +138,16 @@ export function Allocator({ settings, sport, readPools, budgetUsd, stance, onBud
         <p className="alloc-figure">{"Money tied up: $" + dollars(alloc.tiedMicros) + " of $" + dollars(alloc.budgetMicros)}</p>
         <p className="alloc-figure">{"Worst loss: $" + dollars(alloc.worstLossMicros)}</p>
         <p className="alloc-figure">{"Least credit: $" + dollarsFineLeast(alloc.leastMicrosADay) + " a day"}</p>
-        <p className="alloc-figure">{"Pools quoted: " + alloc.pools.length + " of " + read + " read (" + sport.length + " on the list, by the list's own pool ids)"}</p>
+        <p className="alloc-figure">{simMinute !== undefined ? "Pools quoted: " + alloc.pools.length + " of " + sport.length : "Pools quoted: " + alloc.pools.length + " of " + read + " read (" + sport.length + " on the list, by the list's own pool ids)"}</p>
       </div>
       {budgetUsd > MAX_BUDGET_USD && (
         <p className="alloc-under" role="note">{"Worked out for $" + dollars(MAX_BUDGET_USD * 1_000_000) + ", the most this box takes."}</p>
       )}
       {alloc.leastMicrosADay > 0 && alloc.leastMicrosADay < settings.minPayoutMicros && (
         <p className="alloc-under" role="note">{(simMinute !== undefined ? "Under the least payment of $" + dollars(settings.minPayoutMicros) + " a day (an invented setting here)" : "Under Gemini's least payment of $" + dollars(settings.minPayoutMicros) + " a day") + ": a day's total below it is not distributed."}</p>
+      )}
+      {simMinute !== undefined && (
+        <p className="alloc-assumption alloc-legend">Money tied up is what the quotes cost to place. Worst loss is what is gone if every one of them fills and settles the wrong way. Least credit is the floor of a day’s rewards at these books, counting every order already resting as a rival.</p>
       )}
       <p className="alloc-assumption">{ASSUMPTION}</p>
       {simMinute !== undefined && <SimRun minute={simMinute} leastMicrosADay={alloc.leastMicrosADay} />}

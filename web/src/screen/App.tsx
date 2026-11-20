@@ -14,7 +14,7 @@ import { simAt } from "../sim/markets.ts";
 
 /** The public demo: invented markets made in the browser, nothing asked of anybody. Set at build
  * time (VITE_BASKET_SIM=1), or by `?sim` on the address of any build. */
-const SIM = (import.meta as { env?: Record<string, unknown> }).env?.VITE_BASKET_SIM === "1" || (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("sim"));
+const SIM_FLAG = (import.meta as { env?: Record<string, unknown> }).env?.VITE_BASKET_SIM === "1" || (typeof window !== "undefined" && new URLSearchParams(window.location.search).has("sim"));
 
 /** Each sport pool's state, so two reads can be compared for what changed. */
 function statesOf(input: ScreenIn): Map<string, State> {
@@ -38,7 +38,8 @@ async function readPool(key: string): Promise<(Read & { errors: string[] }) | { 
   }
 }
 
-export function App() {
+export function App({ sim: simProp, vaultHref }: { sim?: boolean; vaultHref?: string } = {}) {
+  const SIM = SIM_FLAG || simProp === true;
   const [input, setInput] = useState<ScreenIn | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [openKey, setOpenKey] = useState<string | null>(null);
@@ -217,12 +218,12 @@ export function App() {
 
   return (
     <main className={"board" + ((input as { kept?: boolean } | null)?.kept === true ? " kept" : "")}>
-      {input !== null && source === "sim" && (
+      {input !== null && source === "sim" && vaultHref === undefined && (
         <p className="source sim-note" role="note">
           Demo on invented markets. Every pool, price, book and reward amount here is made up so that anyone can try the
           screen, and they move at each one-minute snapshot. The scoring rule working on them is the real one. Nothing is
           read from Gemini and nothing is sent to it. Set a budget, switch the stance, open a pool and move its sliders. The other half of Basket is the bonded vault an operator would draw that budget from:{" "}
-          <a href={(import.meta as { env?: Record<string, unknown> }).env?.BASE_URL === "/screen/" ? "/" : "/vault.html"}>open the vault</a>.
+          <a href={vaultHref ?? ((import.meta as { env?: Record<string, unknown> }).env?.BASE_URL === "/screen/" ? "/" : "/vault.html")}>{vaultHref !== undefined ? "step 2" : "open the vault"}</a>.
         </p>
       )}
       {input !== null && source !== "sim" && <p className="source">{(input as { kept?: boolean }).kept === true ? "From the answers Gemini's public API gave this Mac earlier; nothing is asked of Gemini now" : source === "live" ? "Read from Gemini's public API by this Mac" : "From the forward run's recorded answers on this Mac; nothing is asked of Gemini"}</p>}
