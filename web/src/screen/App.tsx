@@ -124,7 +124,9 @@ export function App({ sim: simProp, vaultHref, shared }: { sim?: boolean; vaultH
           next = (await res.json()) as ScreenIn;
           if ((next as { shared?: boolean }).shared === true) {
             // The shared server's pools, all at once: its own read, never a request to Gemini from here.
-            const got = (await (await fetch("/feed/pools")).json()) as { pools: Record<string, { atMs: number; events: ListedEvent[]; books: Record<string, Book> }>; pass: PassNote };
+            const poolsRes = await fetch("/feed/pools");
+            if (!poolsRes.ok) throw new Error("the feed answered " + poolsRes.status);
+            const got = (await poolsRes.json()) as { pools: Record<string, { atMs: number; events: ListedEvent[]; books: Record<string, Book> }>; pass: PassNote };
             if (!live) return;
             // A first visit while the server's read has barely begun starts on the invented markets
             // rather than an empty allocator; the switch still goes to the live ones as they are.
@@ -218,7 +220,7 @@ export function App({ sim: simProp, vaultHref, shared }: { sim?: boolean; vaultH
   const isShared = (input as { shared?: boolean } | null)?.shared === true;
   const hhmm = (ms: number) => new Date(ms).toISOString().slice(11, 16) + " UTC";
   const controls: ReactNode = isShared ? (
-    <div className="alloc-run"><span>{passNote === null ? "" : passNote.note !== null ? passNote.note : passNote.finishedAtMs === null ? "Basket’s server is reading Gemini now, one request every 1.2 seconds: " + passNote.done + " of " + passNote.total + " pools so far" : "All " + passNote.total + " pools read by Basket’s server; the read ended at " + hhmm(passNote.finishedAtMs)}</span></div>
+    <div className="alloc-run"><span>{passNote === null ? "" : passNote.note !== null ? passNote.note : passNote.finishedAtMs === null ? "Basket’s server is reading Gemini now, one request every 1.2 seconds: " + passNote.done + " of " + passNote.total + " pools so far" : readPools.size + " of " + passNote.total + " pools read by Basket’s server; that read ended at " + hhmm(passNote.finishedAtMs)}</span></div>
   ) : source === "sim" ? (
     <div className="alloc-run"><span>Every pool below is already read: the markets are invented and remade at each snapshot.</span></div>
   ) : source !== "live" ? undefined : (
@@ -262,7 +264,7 @@ export function App({ sim: simProp, vaultHref, shared }: { sim?: boolean; vaultH
     <main className={"board" + ((input as { kept?: boolean } | null)?.kept === true ? " kept" : "")}>
       {shared === true && input !== null && (
         <div className="markets-switch" role="group" aria-label="which markets">
-          <span className="markets-now">{source === "sim" ? "Showing invented markets: every pool, price, book and reward amount below is made up, and moves each minute." : "Showing Gemini’s live reward pools and books, read from its public API by Basket’s server. Opening this page asks Gemini nothing."}</span>
+          <span className="markets-now">{source === "sim" ? "Showing invented markets: every pool, price, book and reward amount below is made up, and moves each minute." : "Showing Gemini’s live reward pools and books, read from its public API by Basket’s server" + (readPools.size > 0 ? ", the oldest of them " + Math.max(0, Math.round((nowMs - Math.min(...[...readPools.values()].map((r) => r.atMs))) / 60_000)) + " min ago" : "") + ". This page asks that server, never Gemini."}</span>
           {source === "sim" && liveDown !== null && <span className="markets-why">Gemini’s live markets are not ready yet: {liveDown}.</span>}
           <button type="button" onClick={() => switchMarkets(source !== "sim")}>{source === "sim" ? "Show Gemini’s live markets" : "Show invented markets"}</button>
         </div>

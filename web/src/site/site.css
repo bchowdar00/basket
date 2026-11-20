@@ -104,3 +104,13 @@ html { scroll-behavior: smooth; scroll-padding-top: 64px; }
 .markets-why { color: var(--ink-quiet); }
 .markets-switch button { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.05em; font-size: 13px; color: var(--ink); background: var(--linen); border: 1px solid var(--ink); border-radius: 0; padding: 8px 14px; cursor: pointer; min-height: 40px; transition: background-color 140ms ease-out, color 140ms ease-out; }
 .markets-switch button:hover { background: var(--ink); color: var(--linen); }
+
+/* The allocator's heading and its status line share a row where there is room and stack where there is not. */
+.site .alloc-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 24px; }
+.site .alloc-controls-slot { flex: 1 1 320px; min-width: 0; }
+.site .alloc-run span { display: block; max-width: 70ch; text-wrap: pretty; }
+.site .site-say { max-width: 78ch; }
+
+/* The opened pool's panel stays in view under the step bar, not behind it. */
+@media (min-width: 1101px) { .site .opened { top: 68px; } }
+@media (min-width: 1101px) { .site .opened { max-height: calc(100vh - 84px); } }

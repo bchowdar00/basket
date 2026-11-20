@@ -58,12 +58,10 @@ export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
       <section id="plan" className="site-section" aria-labelledby="plan-h">
         <h2 id="plan-h" className="site-h">1. Plan a budget</h2>
         <p className="site-say">
-          Every minute a snapshot is taken, and each pool’s reward for that minute is split by the score: size, over
-          the distance from the middle of the book, squared. So for any budget the best quotes can be worked out
-          before a cent is committed. Change the budget, switch the stance, or open a pool in the table to try your
-          own size and spread. Each figure is a floor: it counts every order already resting as a rival. It runs
-          on Gemini’s live reward pools and books when Basket’s server has read them, and on invented markets that
-          move every minute otherwise; the line below says which, and the button beside it switches.
+          Every minute a snapshot is taken, and each pool’s reward for that minute is split by a published score:
+          size, over the distance from the middle of the book, squared. So the best quotes for a budget can be worked
+          out before a cent is committed. Type a budget, switch the stance, or open a pool in the table to try your
+          own size and spread. Every figure is a floor: it counts each order already resting as a rival.
         </p>
         <App sim shared vaultHref="#fund" />
       </section>

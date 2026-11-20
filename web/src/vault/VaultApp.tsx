@@ -684,6 +684,15 @@ export function VaultApp({ settings, site }: { settings: VaultSettings; site?: b
           <h2 id="fund-h" className="site-h">2. Fund the vault</h2>
           {why !== null ? <p className="error" role="alert">{why}</p> : <p className="vault-waiting">Reading the vault…</p>}
         </section>
+        {/* Steps three and four keep their places, so the step bar's links always land somewhere. */}
+        <section id="rounds" className="site-section" aria-labelledby="rounds-h">
+          <h2 id="rounds-h" className="site-h">3. Watch a round</h2>
+          <p className="vault-waiting">{why !== null ? "Shown once the vault can be read." : "Reading the vault…"}</p>
+        </section>
+        <section id="safety" className="site-section" aria-labelledby="safety-h">
+          <h2 id="safety-h" className="site-h">4. The safety net</h2>
+          <p className="vault-waiting">{why !== null ? "Shown once the vault can be read." : "Reading the vault…"}</p>
+        </section>
         <TestMoneyBanner />
       </div>
     );

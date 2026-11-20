@@ -19,7 +19,7 @@ export type PassState = { startedAtMs: number | null; finishedAtMs: number | nul
 
 /** How long after a pass began the next may begin, and how recently somebody must have asked. */
 export const PASS_EVERY_MS = 75 * 60_000;
-export const VISIT_KEEPS_MS = 30 * 60_000;
+export const VISIT_KEEPS_MS = 6 * 3_600_000; // a page left alone overnight stops being read for; one opened in the last six hours is kept fresh
 const PAUSE_MS = 65_000;
 
 export function sharedReader(a: { feed: Feed; nowMs: () => number; sleep: (ms: number) => Promise<void>; log?: (line: string) => void }) {
@@ -27,6 +27,7 @@ export function sharedReader(a: { feed: Feed; nowMs: () => number; sleep: (ms: n
   const pools = new Map<string, Kept>();
   const pass: PassState = { startedAtMs: null, finishedAtMs: null, done: 0, total: 0, note: null };
   let running = false;
+  let failed = false; // the last pass ended without its lists: tried again soon, not after the long wait
   let lastVisitMs: number | null = null;
   const log = a.log ?? (() => {});
 
@@ -40,6 +41,7 @@ export function sharedReader(a: { feed: Feed; nowMs: () => number; sleep: (ms: n
     pass.finishedAtMs = null;
     pass.done = 0;
     pass.note = null;
+    failed = false;
     try {
       lists = await a.feed.screen();
       const sport = screenOf({ settings: lists.settings, pools: lists.pools, events: [], eventsAtMs: lists.eventsAtMs, passes: [] }, a.nowMs()).sport;
@@ -73,6 +75,7 @@ export function sharedReader(a: { feed: Feed; nowMs: () => number; sleep: (ms: n
         pass.done++;
       }
     } catch (e) {
+      failed = true;
       pass.note = "the last read did not finish: " + (e instanceof Error ? e.message : String(e));
       log(pass.note);
     } finally {
@@ -88,7 +91,7 @@ export function sharedReader(a: { feed: Feed; nowMs: () => number; sleep: (ms: n
       if (running) return false;
       const now = a.nowMs();
       if (pass.startedAtMs === null) return true;
-      if (lists === null) return now - pass.startedAtMs > 6 * 60_000; // the lists never came: tried again once their five minutes have passed
+      if (failed || lists === null) return now - pass.startedAtMs > 6 * 60_000; // the lists did not come: tried again once their five minutes have passed
       if (now - pass.startedAtMs < PASS_EVERY_MS) return false;
       return lastVisitMs !== null && now - lastVisitMs < VISIT_KEEPS_MS;
     },
@@ -107,5 +110,16 @@ export function sharedReader(a: { feed: Feed; nowMs: () => number; sleep: (ms: n
       return { pools: Object.fromEntries(pools), pass: { ...pass } };
     },
     state: () => ({ ...pass, running, pools: pools.size }),
+    /** Everything held, to be written down so a restart does not begin from nothing; and its way back in. */
+    dump: () => ({ lists, pools: Object.fromEntries(pools), pass: { ...pass } }),
+    restore(kept: { lists: Lists | null; pools: Record<string, Kept>; pass: PassState }): void {
+      if (kept.lists === null || typeof kept.pools !== "object" || kept.pools === null) return;
+      lists = kept.lists;
+      for (const [k, v] of Object.entries(kept.pools)) pools.set(k, v);
+      // The pass that was under way when the server stopped did not finish; the one before it is not known. The next begins when it is due.
+      // A pass cut off by the restart is begun again at once (its lists wait out their own five minutes if they must).
+      const cut = kept.pass.finishedAtMs === null;
+      Object.assign(pass, kept.pass, { finishedAtMs: kept.pass.finishedAtMs ?? a.nowMs(), note: null }, cut ? { startedAtMs: null } : {});
+    },
   };
 }

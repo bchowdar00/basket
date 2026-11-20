@@ -66,3 +66,33 @@ test("the first pass is due at once; the next only after the wait and only if so
   assert.match(String((bad.r.state() as { note: string }).note), /did not finish/);
   assert.equal(bad.r.screen(), null);
 });
+
+test("what is held can be written down and restored into a new reader, which then waits its turn before reading again", async () => {
+  const w = world({ screen: async () => lists([row("A", 1)]), pool: async () => good("A") });
+  await w.r.runPass();
+  const kept = JSON.parse(JSON.stringify(w.r.dump()));
+  const fresh = world({ screen: async () => { throw new Error("not asked"); }, pool: async () => { throw new Error("not asked"); } });
+  fresh.r.restore(kept);
+  assert.equal(Object.keys((fresh.r.pools() as { pools: object }).pools).length, 1);
+  assert.notEqual(fresh.r.screen(), null);
+  assert.equal(fresh.r.due(), false);
+});
+
+test("a restored reader whose pass was cut off reads again at once; a pass that fails for want of its lists is tried again after six minutes", async () => {
+  const w = world({ screen: async () => lists([row("A", 1)]), pool: async () => good("A") });
+  await w.r.runPass();
+  const kept = JSON.parse(JSON.stringify(w.r.dump()));
+  kept.pass.finishedAtMs = null;
+  let ok = false;
+  const fresh = world({ screen: async () => { if (!ok) throw new Error("asked under five minutes ago"); return lists([row("A", 1)]); }, pool: async () => good("A") });
+  fresh.r.restore(kept);
+  assert.equal(fresh.r.due(), true);
+  await fresh.r.runPass();
+  assert.equal(fresh.r.due(), false);
+  assert.notEqual(fresh.r.screen(), null, "what was restored is still served");
+  fresh.advance(6 * 60_000 + 1);
+  assert.equal(fresh.r.due(), true);
+  ok = true;
+  await fresh.r.runPass();
+  assert.equal((fresh.r.state() as { note: string | null }).note, null);
+});
