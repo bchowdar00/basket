@@ -107,7 +107,7 @@ function RoundRow({ r, explorerBase }: { r: Round; explorerBase: string }) {
   const result = depositorsResult(r);
   return (
     <li className="vault-round">
-      <span className="vault-round-id">Round {r.id.toString()} · {clockUtc(r.startedAt)}</span>
+      <span className="vault-round-id">Round {r.id.toString()} · {clockUtc(r.startedAt)} · plan {r.plan.slice(0, 8)}…{r.plan.slice(-4)}</span>
       {r.end === null ? (
         <span>Drew ${fmtUsd(r.draw)}; open</span>
       ) : r.end.kind === "default" ? (

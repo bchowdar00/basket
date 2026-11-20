@@ -235,6 +235,7 @@ test("the page opens with what the vault is, lists how it works, and shows a rec
   expect(html.indexOf("puts the operator’s own bond first in line for a loss")).toBeLessThan(html.indexOf("in the vault"));
   expect(html).toContain("How it works");
   expect(html).toContain("Round 7");
+  expect(html).toContain("plan " + HASH.slice(0, 8) + "…" + HASH.slice(-4));
   expect(html).toContain("Depositors +$0.0080 (+0.80%)");
   expect(html).toContain(EXPLORER + "/tx/" + HASH);
   expect(html).toContain("The next opens in about 5 min.");
