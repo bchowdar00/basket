@@ -140,3 +140,18 @@ test("a budget over the box's ceiling, or not a number, is worked out at the cei
   expect(huge).toContain("of $1,000,000</p>");
   expect(render(sportOf(wholeRows, wholeEvents), wholeRead, Number.NaN)).toContain("Money tied up: $0.00 of $0.00");
 });
+
+test("the one page's short layout: the same figures, the next step, and the detail folded but present", () => {
+  const html = decode(renderToStaticMarkup(
+    <Allocator settings={S} sport={sportOf(wholeRows, wholeEvents)} readPools={wholeRead} budgetUsd={10_000} stance="widest" onBudget={() => {}} onStance={() => {}} compact nextHref="#fund" />,
+  ));
+  expect(html).toContain("<dt>Least credit</dt><dd>$5.00 <span>a day</span></dd>");
+  expect(html).toContain("<dt>Money tied up</dt><dd>$90.00 <span>of $10,000</span></dd>");
+  expect(html).toContain("<dt>Worst loss</dt><dd>$55.00</dd>");
+  expect(html).toContain("by the list's own pool ids");
+  expect(html).toContain('href="#fund"');
+  expect(html).toContain("The 1 quote behind it");
+  expect(html.split("<details").length).toBe(3);
+  expect(html).toContain("A floor when the books were read, not a forecast");
+  expect(html).not.toContain("ALLOCATOR");
+});

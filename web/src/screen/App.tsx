@@ -222,7 +222,7 @@ export function App({ sim: simProp, vaultHref, shared }: { sim?: boolean; vaultH
   const controls: ReactNode = isShared ? (
     <div className="alloc-run"><span>{passNote === null ? "" : passNote.note !== null ? passNote.note : passNote.finishedAtMs === null ? "Basket’s server is reading Gemini now, one request every 1.2 seconds: " + passNote.done + " of " + passNote.total + " pools so far" : readPools.size + " of " + passNote.total + " pools read by Basket’s server; that read ended at " + hhmm(passNote.finishedAtMs)}</span></div>
   ) : source === "sim" ? (
-    <div className="alloc-run"><span>Every pool below is already read: the markets are invented and remade at each snapshot.</span></div>
+    vaultHref !== undefined ? undefined : <div className="alloc-run"><span>Every pool below is already read: the markets are invented and remade at each snapshot.</span></div>
   ) : source !== "live" ? undefined : (
     <div className="alloc-run">
       {run === null && <button type="button" onClick={askRun}>Read every pool for the allocator</button>}
@@ -264,9 +264,9 @@ export function App({ sim: simProp, vaultHref, shared }: { sim?: boolean; vaultH
     <main className={"board" + ((input as { kept?: boolean } | null)?.kept === true ? " kept" : "")}>
       {shared === true && input !== null && (
         <div className="markets-switch" role="group" aria-label="which markets">
-          <span className="markets-now">{source === "sim" ? "Showing invented markets: every pool, price, book and reward amount below is made up, and moves each minute." : "Showing Gemini’s live reward pools and books, read from its public API by Basket’s server" + (readPools.size > 0 ? ", the oldest of them " + Math.max(0, Math.round((nowMs - Math.min(...[...readPools.values()].map((r) => r.atMs))) / 60_000)) + " min ago" : "") + ". This page asks that server, never Gemini."}</span>
-          {source === "sim" && liveDown !== null && <span className="markets-why">Gemini’s live markets are not ready yet: {liveDown}.</span>}
-          <button type="button" onClick={() => switchMarkets(source !== "sim")}>{source === "sim" ? "Show Gemini’s live markets" : "Show invented markets"}</button>
+          <span className="markets-now">{source === "sim" ? "Invented markets: every pool, price and reward amount here is made up, and moves each minute." : "Gemini’s live reward pools and books, read from its public API by Basket’s server" + (readPools.size > 0 ? ", the oldest of them " + Math.max(0, Math.round((nowMs - Math.min(...[...readPools.values()].map((r) => r.atMs))) / 60_000)) + " min ago" : "") + ". This page asks that server, never Gemini."}</span>
+          {source === "sim" && liveDown !== null && <span className="markets-why">Live markets are not ready: {liveDown}.</span>}
+          <button type="button" onClick={() => switchMarkets(source !== "sim")}>{source === "sim" ? "Use Gemini’s live markets" : "Use invented markets"}</button>
         </div>
       )}
       {input !== null && source === "sim" && vaultHref === undefined && (
@@ -287,7 +287,7 @@ export function App({ sim: simProp, vaultHref, shared }: { sim?: boolean; vaultH
             settings={input.settings} steps={steps}
             qty={qty ?? input.settings.minSize} spreadCents={spreadCents ?? input.settings.maxSpreadCents}
             onQty={setQty} onSpread={setSpreadCents}
-            readPools={readPools} budgetUsd={budgetUsd} stance={stance} onBudget={setBudgetUsd} onStance={setStance} controls={controls} sim={source === "sim"}
+            readPools={readPools} budgetUsd={budgetUsd} stance={stance} onBudget={setBudgetUsd} onStance={setStance} controls={controls} sim={source === "sim"} compact={vaultHref !== undefined} nextHref={vaultHref}
             books={opened !== null && opened.key === openKey ? opened.books : undefined} pending={pending !== null && pending === openKey} extra={extra} unreadLeft={unreadLeft}
           />
         : error === null && <p className="waiting">reading the feed…</p>}

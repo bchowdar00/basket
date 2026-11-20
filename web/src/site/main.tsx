@@ -13,10 +13,10 @@ import "../vault/vault.css";
 import "./site.css";
 
 const STEPS: { href: string; name: string; says: string }[] = [
-  { href: "#plan", name: "Plan a budget", says: "Type a budget and see the quotes the scoring rule would credit most, across every pool." },
-  { href: "#fund", name: "Fund the vault", says: "Deposit test dollars into the contract an operator would draw that budget from." },
-  { href: "#rounds", name: "Watch a round", says: "The operator draws, sends the money back, and what you hold moves." },
-  { href: "#safety", name: "The safety net", says: "If it misses its deadline, anyone can move its bond to depositors." },
+  { href: "#plan", name: "Plan a budget", says: "See where the scoring rule would credit a budget most." },
+  { href: "#fund", name: "Fund the vault", says: "Deposit test dollars into the contract an operator would draw from." },
+  { href: "#rounds", name: "Watch a round", says: "The operator draws, returns the money, and your holding moves." },
+  { href: "#safety", name: "The safety net", says: "Miss a deadline and anyone can move its bond to depositors." },
 ];
 
 export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
@@ -32,11 +32,11 @@ export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
       <header id="top" className="site-intro">
         <h1 className="site-title">One budget across every reward pool, with the operator’s own money first in line.</h1>
         <p className="site-lede">
-          Gemini pays makers every day for keeping two-sided quotes resting in its prediction markets, and splits each
-          reward pool by a score it publishes. Basket is two things built on that. An allocator works out where a
-          budget would be credited most. A bonded vault is where an operator would get that budget, under limits it
-          cannot get round.
+          Gemini pays makers for keeping quotes resting in its prediction markets, and splits each reward pool by a
+          score it publishes. Basket works out where a budget would be credited most, and pairs it with a vault an
+          operator would draw that budget from, its own bond first in line.
         </p>
+        <p className="site-start"><a className="site-go" href="#plan">Start with a budget</a></p>
         <ol className="site-steps">
           {STEPS.map((s, i) => (
             <li key={s.href}>
@@ -49,19 +49,17 @@ export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
           ))}
         </ol>
         <p className="site-note" role="note">
-          This is a working demo, and everything on it can be used. Step 1 works on Gemini’s live public
-          market data, or on invented markets, and says which. The money in steps 2 to 4 is test USDC on Arc’s test
-          network, and the operator there is a stand-in. No order is placed on any exchange.
+          A working demo you can use. Step 1 runs on Gemini’s live public market data or on invented markets, and
+          says which. Steps 2 to 4 use test USDC on Arc’s test network with a stand-in operator. No order is placed
+          on any exchange.
         </p>
       </header>
 
       <section id="plan" className="site-section" aria-labelledby="plan-h">
         <h2 id="plan-h" className="site-h">1. Plan a budget</h2>
         <p className="site-say">
-          Every minute a snapshot is taken, and each pool’s reward for that minute is split by a published score:
-          size, over the distance from the middle of the book, squared. So the best quotes for a budget can be worked
-          out before a cent is committed. Type a budget, switch the stance, or open a pool in the table to try your
-          own size and spread. Every figure is a floor: it counts each order already resting as a rival.
+          Type a budget. Basket works out the quotes the published score would credit most across every pool, and
+          what they would cost. The credit figures are floors, not forecasts.
         </p>
         <App sim shared vaultHref="#fund" />
       </section>

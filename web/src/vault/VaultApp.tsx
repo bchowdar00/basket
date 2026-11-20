@@ -278,10 +278,9 @@ export function VaultView(p: VaultViewProps) {
           <div className="site-cols">
             <div className="site-col">
               <p className="site-say">
-                Who would hand an operator that budget? Here depositors put money into a contract
-                instead, and the operator may only borrow from it under the limits on the right.
-                Try it with test dollars: add funds, allow the vault, deposit. No wallet app is
-                needed; this page keeps a test wallet in your browser and a relayer pays the
+                Depositors put money into a contract, and the operator may only borrow from it
+                under the limits on the right. Try it with test dollars in three taps. No wallet
+                app is needed: this page keeps a test wallet in your browser and a relayer pays the
                 network fees.
               </p>
               {alerts}

@@ -40,6 +40,8 @@ type Props = {
   onBudget: (n: number) => void;
   onStance: (s: Stance) => void;
   controls?: ReactNode; // the read-every-pool controls, placed in the allocator's section header
+  compact?: boolean; // the one page's short layout: one status line, the pool table folded
+  nextHref?: string;
   sim?: boolean; // the markets are invented (the public demo): the snapshot line and the footnote say so
 };
 
@@ -68,32 +70,12 @@ function priceWords(cents: number | null): string {
   return cents === null ? "—" : cents + "¢";
 }
 
-export function Screen({ screen, nowMs, openKey, onOpen, changed, settings, steps, qty, spreadCents, onQty, onSpread, books, pending, extra, unreadLeft, readPools, budgetUsd, stance, onBudget, onStance, controls, sim }: Props) {
+export function Screen({ screen, nowMs, openKey, onOpen, changed, settings, steps, qty, spreadCents, onQty, onSpread, books, pending, extra, unreadLeft, readPools, budgetUsd, stance, onBudget, onStance, controls, sim, compact, nextHref }: Props) {
   const { now, program } = screen;
   const seconds = Math.ceil(msToMark(nowMs) / 1_000);
   const open = openKey === null ? undefined : screen.sport.find((p) => p.key === openKey);
 
-  return (
-    <div className="screen">
-      <header className="topbar">
-        <h1 className="name">{NAME}</h1>
-        <p className="countdown">
-          <span className="digits" key={seconds}>{seconds}</span>
-          <span className="count-label">{sim === true ? " seconds to the next snapshot" : " seconds to Gemini's next snapshot"}</span>
-        </p>
-        <p className="figure f3">
-          {sim === true ? program.pools + " invented reward pools, $" + dollars(program.microsADay) + " a day between them" : program.pools + " pools, $" + dollars(program.microsADay) + " a day in all, each counted once, by the list's own pool ids"}
-        </p>
-        {now.of + now.live > 0 && <p className="figure f2">
-          {sim === true ? "In " + now.none + " of " + now.of + " events nobody is quoting close enough to the middle to qualify right now" : "In " + now.none + " of " + now.of + " events read, the listed prices hold no qualifying pair at this read"}
-          {(sim !== true || now.live > 0) && <span className="live-note">{". " + now.live + " in play, not scored from the list"}</span>}
-        </p>}
-      </header>
-      <Allocator
-        settings={settings} sport={screen.sport} readPools={readPools}
-        budgetUsd={budgetUsd} stance={stance} onBudget={onBudget} onStance={onStance} controls={controls} simMinute={sim === true ? Math.floor(nowMs / 60_000) : undefined}
-      />
-
+  const poolsBody = (
       <div className="body">
         <div className="table-scroll">
           <table className="pools">
@@ -118,6 +100,46 @@ export function Screen({ screen, nowMs, openKey, onOpen, changed, settings, step
           <Opened pool={open} settings={settings} steps={steps} qty={qty} spreadCents={spreadCents} onQty={onQty} onSpread={onSpread} books={books} pending={pending} extra={extra} unreadLeft={unreadLeft} />
         )}
       </div>
+  );
+
+  return (
+    <div className="screen">
+      {compact === true ? (
+        <p className="plan-status">
+          <span>{sim === true ? program.pools + " invented reward pools, $" + dollars(program.microsADay) + " a day between them" : program.pools + " pools, $" + dollars(program.microsADay) + " a day in all, each counted once, by the list's own pool ids"}</span>
+          <span className="plan-tick">{"next snapshot in " + seconds + " s"}</span>
+        </p>
+      ) : (
+      <header className="topbar">
+          <h1 className="name">{NAME}</h1>
+          <p className="countdown">
+            <span className="digits" key={seconds}>{seconds}</span>
+            <span className="count-label">{sim === true ? " seconds to the next snapshot" : " seconds to Gemini's next snapshot"}</span>
+          </p>
+          <p className="figure f3">
+            {sim === true ? program.pools + " invented reward pools, $" + dollars(program.microsADay) + " a day between them" : program.pools + " pools, $" + dollars(program.microsADay) + " a day in all, each counted once, by the list's own pool ids"}
+          </p>
+          {now.of + now.live > 0 && <p className="figure f2">
+            {sim === true ? "In " + now.none + " of " + now.of + " events nobody is quoting close enough to the middle to qualify right now" : "In " + now.none + " of " + now.of + " events read, the listed prices hold no qualifying pair at this read"}
+            {(sim !== true || now.live > 0) && <span className="live-note">{". " + now.live + " in play, not scored from the list"}</span>}
+          </p>}
+        </header>
+      )}
+      <Allocator
+        settings={settings} sport={screen.sport} readPools={readPools}
+        budgetUsd={budgetUsd} stance={stance} onBudget={onBudget} onStance={onStance} controls={controls} simMinute={sim === true ? Math.floor(nowMs / 60_000) : undefined} compact={compact} nextHref={nextHref}
+      />
+
+      {compact === true ? (
+        <details className="plan-more plan-all">
+          <summary>{"All " + screen.sport.length + " pools" + (sim === true ? "" : ", by the list's own pool ids") + ": open one to try your own size and spread"}</summary>
+          {now.of + now.live > 0 && <p className="plan-read">
+            {sim === true ? "In " + now.none + " of " + now.of + " events nobody is quoting close enough to the middle to qualify right now" : "In " + now.none + " of " + now.of + " events read, the listed prices hold no qualifying pair at this read"}
+            {(sim !== true || now.live > 0) && ". " + now.live + " in play, not scored from the list"}
+          </p>}
+          {poolsBody}
+        </details>
+      ) : poolsBody}
       {/* The one footnote (decided 2026-11-19): what every reward figure on the screen rests on. */}
       <footer className="screen-foot" role="note">{sim === true ? "Every market, price, book and reward amount on this page is invented, and so are the program's settings; only the scoring rule is real. Least figures are floors under that rule for the books shown, not forecasts. Nothing here places an order." : "Every reward figure on this screen is " + GEMINI_TEXT + ". Least figures are floors at the moment the books were read, not forecasts. Gemini's rules shut out contracts in post-only mode and members under a market-maker agreement; this screen reads neither. Nothing here places an order."}</footer>
     </div>
