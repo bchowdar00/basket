@@ -44,15 +44,15 @@ const POOLS: { name: string; category: string; kind: Kind; events: number; crowd
   { name: "Upland Cup, round two", category: "Invented Football", kind: "game", events: 4, crowd: 2, usdADay: 45 },
   { name: "Harbor Series, tonight", category: "Invented Basketball", kind: "game", events: 6, crowd: 3, usdADay: 75 },
   { name: "Harbor Series most valuable player", category: "Invented Basketball", kind: "award", events: 1, crowd: 1, usdADay: 25 },
-  { name: "Harbor Series coach of the year", category: "Invented Basketball", kind: "award", events: 1, crowd: 0, usdADay: 20 },
+  { name: "Harbor Series coach of the year", category: "Invented Basketball", kind: "award", events: 1, crowd: 0, usdADay: 3 },
   { name: "Lowland Division winner", category: "Invented Basketball", kind: "season", events: 1, crowd: 2, usdADay: 30 },
   { name: "Tidewater Open, round of sixteen", category: "Invented Tennis", kind: "game", events: 8, crowd: 2, usdADay: 40 },
   { name: "Tidewater Open winner", category: "Invented Tennis", kind: "season", events: 1, crowd: 1, usdADay: 28 },
-  { name: "Ridge Rally stage winners", category: "Invented Motor Racing", kind: "game", events: 3, crowd: 0, usdADay: 22 },
+  { name: "Ridge Rally stage winners", category: "Invented Motor Racing", kind: "game", events: 3, crowd: 0, usdADay: 4 },
   { name: "Ridge Rally champion", category: "Invented Motor Racing", kind: "season", events: 1, crowd: 1, usdADay: 18 },
-  { name: "Greywater Derby", category: "Invented Rowing", kind: "game", events: 2, crowd: 0, usdADay: 15 },
+  { name: "Greywater Derby", category: "Invented Rowing", kind: "game", events: 2, crowd: 0, usdADay: 2 },
   { name: "Northern Ice League, this week", category: "Invented Hockey", kind: "game", events: 5, crowd: 2, usdADay: 55 },
-  { name: "Northern Ice League points leader", category: "Invented Hockey", kind: "award", events: 1, crowd: 0, usdADay: 12 },
+  { name: "Northern Ice League points leader", category: "Invented Hockey", kind: "award", events: 1, crowd: 0, usdADay: 2 },
   { name: "Northern Ice League total wins", category: "Invented Hockey", kind: "season", events: 3, crowd: 1, usdADay: 24 },
   { name: "Summit Marathon podium", category: "Invented Athletics", kind: "award", events: 2, crowd: 1, usdADay: 16 },
   { name: "Quillhaven Chess Classic", category: "Invented Chess", kind: "game", events: 4, crowd: 1, usdADay: 14 },
@@ -110,7 +110,7 @@ export function simAt(nowMs: number): Sim {
       const ticker = p.name.split(/[^A-Za-z]+/).filter((w) => w !== "").map((w) => w[0].toUpperCase()).join("") + (pi + 1) + "." + (ei + 1);
       const ai = pi * 3 + ei * 2, bi = pi * 3 + ei * 2 + 5;
       const a = team(ai), b = team(bi);
-      const title = p.kind === "game" ? a + " at " + b : p.kind === "season" ? (p.events === 1 ? p.name : a + ", " + p.name.toLowerCase()) : p.name + (p.events === 1 ? "" : ", " + (ei + 1));
+      const title = p.kind === "game" ? a + " at " + b : p.kind === "season" ? (p.events === 1 ? p.name : a + ": " + p.name) : p.name + (p.events === 1 ? "" : ", race " + (ei + 1));
       // A game has one contract for each side; a season or an award has a few named runners.
       const n = p.kind === "game" ? 2 : between(ticker + ":n", 2, 4);
       const contracts = Array.from({ length: n }, (_, ci) => {

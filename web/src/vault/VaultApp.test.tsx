@@ -233,6 +233,8 @@ test("the page opens with what the vault is, lists how it works, and shows a rec
       rounds={[round]} roundEverySec={900} sourceUrl="https://source.example/basket" screenUrl="/screen/" />,
   ));
   expect(html.indexOf("puts the operator’s own bond first in line for a loss")).toBeLessThan(html.indexOf("in the vault"));
+  expect(html).toContain("the operator is a stand-in that places no order anywhere");
+  expect(html.indexOf("No order was placed on any exchange and no reward was received")).toBeLessThan(html.indexOf("Round 7"));
   expect(html).toContain("How it works");
   expect(html).toContain("Round 7");
   expect(html).toContain("plan " + HASH.slice(0, 8) + "…" + HASH.slice(-4));

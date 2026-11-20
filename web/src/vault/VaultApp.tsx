@@ -158,9 +158,10 @@ export function VaultView(p: VaultViewProps) {
       <header className="vault-head">
         <h1 className="vault-name">BASKET</h1>
         <p className="vault-lede">
-          A vault for an operator that quotes one budget across the reward pools of Gemini’s
-          prediction markets. Depositors fund it. The contract caps what the operator may take, sets
-          its deadline, and puts the operator’s own bond first in line for a loss.
+          A vault built for an operator that would quote one budget across the reward pools of
+          Gemini’s prediction markets. Depositors fund it. The contract caps what the operator may
+          take, sets its deadline, and puts the operator’s own bond first in line for a loss. In
+          this demo the operator is a stand-in that places no order anywhere.
         </p>
         {p.screenUrl != null && (
           <p className="vault-lede vault-try"><a className="vault-hash" href={p.screenUrl}>Try the operator’s allocator on invented markets</a></p>
@@ -216,6 +217,10 @@ export function VaultView(p: VaultViewProps) {
 
       <section className="vault-rounds" aria-label="rounds">
         <h2 className="vault-terms-head">Rounds</h2>
+        <p className="vault-round-sim" role="note">
+          Demo rounds. The stand-in operator sends back what it drew with a small made-up gain, so
+          the mechanics can be seen. No order was placed on any exchange and no reward was received.
+        </p>
         <p className="vault-figure vault-round-now" data-round-now="">{roundStatus(d, p.rounds ?? null, p.roundEverySec ?? null, p.nowSec)}</p>
         {p.rounds != null && p.rounds.filter((r) => r.end !== null).length > 0 && (
           <ol className="vault-round-list" aria-label="recent rounds">
@@ -531,6 +536,12 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
         try {
           const r = await readRounds(k.client, vaultRef.current, epochSeconds, headRef.current ?? undefined);
           if (on) setRounds(r);
+          // Once more a little later, with a newer block: a read that reached a node a block or
+          // two behind can stop short of the round that just closed.
+          await pause(15_000);
+          if (!on) return;
+          const again = await readRounds(k.client, vaultRef.current, epochSeconds, headRef.current ?? undefined);
+          if (on) setRounds(again);
           return;
         } catch {
           // try again after the next, longer wait

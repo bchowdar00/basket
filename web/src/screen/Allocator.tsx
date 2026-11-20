@@ -144,7 +144,7 @@ export function Allocator({ settings, sport, readPools, budgetUsd, stance, onBud
         <p className="alloc-under" role="note">{"Worked out for $" + dollars(MAX_BUDGET_USD * 1_000_000) + ", the most this box takes."}</p>
       )}
       {alloc.leastMicrosADay > 0 && alloc.leastMicrosADay < settings.minPayoutMicros && (
-        <p className="alloc-under" role="note">{"Under Gemini's least payment of $" + dollars(settings.minPayoutMicros) + " a day: a day's total below it is not distributed."}</p>
+        <p className="alloc-under" role="note">{(simMinute !== undefined ? "Under the least payment of $" + dollars(settings.minPayoutMicros) + " a day (an invented setting here)" : "Under Gemini's least payment of $" + dollars(settings.minPayoutMicros) + " a day") + ": a day's total below it is not distributed."}</p>
       )}
       <p className="alloc-assumption">{ASSUMPTION}</p>
       {simMinute !== undefined && <SimRun minute={simMinute} leastMicrosADay={alloc.leastMicrosADay} />}

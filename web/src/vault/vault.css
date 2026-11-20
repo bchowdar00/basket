@@ -185,3 +185,5 @@
 .vault-how-list li::marker { color: var(--ink-quiet); }
 
 .vault-links { margin: 0 0 4px; font-size: 13px; }
+
+.vault-round-sim { margin: 0 0 8px; font-size: 12px; line-height: 1.5; color: var(--ink); background: var(--linen-2); padding: 8px 12px; max-width: 50ch; text-wrap: pretty; }
