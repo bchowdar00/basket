@@ -189,7 +189,7 @@ AI tools were used to write and review code throughout the week.
 `npm test` from the root, and `npm test --prefix services/relayer`. Counts as of 2026-11-20:
 
 - `packages/score`, `packages/rule`, `packages/ledger` (`node --test`): 31, 32, 52
-- `web` (Vitest): 174
+- `web` (Vitest): 175
 - `contracts` (Hardhat, local chain): 71
 - `services/engine` (`node --test`): 107
 - `services/relayer` (`node --test`): 61
