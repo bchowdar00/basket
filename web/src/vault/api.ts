@@ -63,7 +63,7 @@ function sentenceFor(code: string, why: string | undefined): string {
     case "already-handed":
       return "This wallet has already been funded.";
     case "too-many":
-      return "Too many requests from this network just now. Try again in a few minutes.";
+      return "Too many requests just now. Try again later, up to an hour from now.";
     case "none-left":
       return "No more funds are being given out here.";
     case "empty":
@@ -111,16 +111,22 @@ export function relayerApi(base: string, fetcher: typeof fetch = (...a) => fetch
   async function call(method: string, path: string, body?: unknown): Promise<unknown> {
     let res: Response;
     let text: string;
+    // A relayer that never answers is no answer, not a button held forever. An AbortController is
+    // used because older phones' browsers have no AbortSignal.timeout.
+    const stop = new AbortController();
+    const timer = setTimeout(() => stop.abort(), 25_000);
     try {
       res = await fetcher(base + path, {
         method,
         cache: "no-store",
-        signal: AbortSignal.timeout(25_000), // a relayer that never answers is no answer, not a button held forever
+        signal: stop.signal,
         ...(body === undefined ? {} : { body: JSON.stringify(body), headers: { "content-type": "application/json" } }),
       });
       text = await res.text();
     } catch {
       throw new NoAnswer();
+    } finally {
+      clearTimeout(timer);
     }
     let said: unknown = null;
     try {

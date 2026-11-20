@@ -17,6 +17,10 @@ export type VaultSettings = {
   vault: Address;
   relayer: string;
   explorer: string;
+  /** Optional: about how often a round opens on this deployment, in seconds (VITE_VAULT_ROUND_EVERY). */
+  roundEverySec?: number;
+  /** Optional: where the source is (VITE_VAULT_SOURCE). */
+  sourceUrl?: string;
 };
 
 export type EnvResult = { ok: true; settings: VaultSettings } | { ok: false; missing: string[] };
@@ -70,7 +74,17 @@ export function readVaultEnv(env: Record<string, unknown>): EnvResult {
   const explorer = webAddr("VITE_VAULT_EXPLORER", false);
 
   if (missing.length > 0) return { ok: false, missing };
-  return { ok: true, settings: { chainId, rpc, vault, relayer, explorer } };
+  // Two optional settings: left out, the page simply does not say them. A wrong one is left out too.
+  const every = env.VITE_VAULT_ROUND_EVERY;
+  const source = env.VITE_VAULT_SOURCE;
+  return {
+    ok: true,
+    settings: {
+      chainId, rpc, vault, relayer, explorer,
+      ...(typeof every === "string" && /^[1-9]\d{1,5}$/.test(every) ? { roundEverySec: Number(every) } : {}),
+      ...(typeof source === "string" && /^https:\/\//.test(source) ? { sourceUrl: source } : {}),
+    },
+  };
 }
 
 export function MissingSettings({ missing }: { missing: string[] }) {

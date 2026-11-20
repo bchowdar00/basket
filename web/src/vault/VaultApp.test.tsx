@@ -4,7 +4,8 @@ import { expect, test } from "vitest";
 
 import type { VaultData } from "./chain.ts";
 import { nextStep, type StepInput } from "./steps.ts";
-import { CannotKeepWallet, Reading, VaultView, canDeclareDefault, chainMismatchError } from "./VaultApp.tsx";
+import { CannotKeepWallet, Reading, VaultView, canDeclareDefault, chainMismatchError, roundStatus } from "./VaultApp.tsx";
+import type { Round } from "./rounds.ts";
 
 const USD = 1_000_000n;
 const WHOLE = 1_000_000_000_000n;
@@ -217,4 +218,33 @@ test("a browser whose storage throws gets the page that says so, not a render th
   } finally {
     g.window = had;
   }
+});
+
+// 2026-11-20: the page says what it is and shows what the rounds did.
+test("the page opens with what the vault is, lists how it works, and shows a recent round's result for depositors", () => {
+  const round: Round = {
+    id: 7n, startedAt: 400n, plan: HASH, draw: 500_000n, assetsAtStart: 1_000_000n,
+    end: { kind: "closed", returned: 510_000n, fee: 2_000n, fromBond: 0n, tx: HASH },
+  };
+  const d = data();
+  const html = decode(renderToStaticMarkup(
+    <VaultView vaultName="stage" vaultAddress={VAULT_AT} address={ADDR} data={d} step={stepFrom(d, 1_000)} nowSec={1_000}
+      deadlinePassed={false} explorerBase={EXPLORER} busy={false} error={null} notice={null} onPrimary={() => {}} onDeclareDefault={() => {}}
+      rounds={[round]} roundEverySec={900} sourceUrl="https://source.example/basket" />,
+  ));
+  expect(html.indexOf("puts the operator’s own bond first in line for a loss")).toBeLessThan(html.indexOf("in the vault"));
+  expect(html).toContain("How it works");
+  expect(html).toContain("Round 7");
+  expect(html).toContain("Depositors +$0.0080 (+0.80%)");
+  expect(html).toContain(EXPLORER + "/tx/" + HASH);
+  expect(html).toContain("The next opens in about 5 min.");
+  expect(html).toContain("https://source.example/basket");
+});
+
+test("the rounds line: open with its time left, closed with no guess when the page was told nothing, and closed for good after a default", () => {
+  expect(roundStatus(data(), null, null, 1_000)).toBe("No round is open now.");
+  const open = data({ epoch: { ...data().epoch, id: 3n, open: true, drawn: 500_000n, deadline: 1_090n } });
+  expect(roundStatus(open, null, 600, 1_000)).toBe("Round 3 is open: $0.50 is out with the operator, 1m 30s left.");
+  const gone = data({ epoch: { ...data().epoch, id: 3n, defaulted: true } });
+  expect(roundStatus(gone, null, 600, 1_000)).toContain("a default was declared in round 3");
 });

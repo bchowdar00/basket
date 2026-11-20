@@ -136,6 +136,8 @@ export type RunArgs = {
   vault: Contract;
   usdc: Contract;
   steps: Step[];
+  /** When given, no round is opened while the operator holds less USDC than this: a round it could not afford to close would pass its deadline. */
+  floor?: bigint;
   sleep: (seconds: number) => Promise<void>;
   log: (line: Record<string, unknown>) => void;
 };
@@ -194,6 +196,10 @@ export async function runSteps(a: RunArgs): Promise<void> {
       } else if (step.kind === "unbond") {
         tx = await send(a.vault, "withdrawBond", [step.units]);
       } else if (step.kind === "open") {
+        if (a.floor !== undefined) {
+          const held = (await a.reader.readContract({ address: a.usdc.address, abi: parseAbi(["function balanceOf(address) view returns (uint256)"]), functionName: "balanceOf", args: [account.address] })) as bigint;
+          if (held < a.floor) throw new Error(`open refused: the operator holds ${held} units, under the floor of ${a.floor}`);
+        }
         const draw = step.draw === "max" ? ((await read("limits")) as readonly bigint[])[2] : step.draw;
         const h = (await read("head")) as Hex;
         const plan = h !== ZERO32 ? h : keccak256(toHex("stage round"));
@@ -285,6 +291,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       vault: { address: vault, abi: VAULT_ABI },
       usdc: { address: usdc, abi: ERC20_ABI },
       steps,
+      floor: BigInt(process.env.VAULT_STAGE_FLOOR || "3000000"),
       sleep: (seconds) => new Promise((r) => setTimeout(r, seconds * 1000)),
       log: (line) => console.log(JSON.stringify(line)),
     });

@@ -15,6 +15,7 @@ import { createPublicClient, defineChain, http, type Address, type Hex } from "v
 
 import { relayerApi, NoAnswer, RelayerError, type RelayerApi } from "./api.ts";
 import { vaultChain, type Quote, type VaultChain, type VaultData } from "./chain.ts";
+import { depositorsResult, pctOf, readRounds, type Round } from "./rounds.ts";
 import { fmtUsd, nextStep, type Step, type StepInput } from "./steps.ts";
 import type { VaultSettings } from "./main.tsx";
 import { deviceId, loadOrMakeKey, type VaultWallet } from "./wallet.ts";
@@ -71,7 +72,60 @@ export type VaultViewProps = {
   notice: string | null;
   onPrimary: () => void;
   onDeclareDefault: () => void;
+  /** The vault's recent rounds, newest first; null while they have not been read. */
+  rounds?: Round[] | null;
+  /** About how often a round opens on this deployment, in seconds, when the page was told. */
+  roundEverySec?: number | null;
+  /** Where the source is, when the page was told. */
+  sourceUrl?: string | null;
 };
+
+/** A unix-seconds moment as a short UTC clock time. */
+const clockUtc = (sec: bigint): string => new Date(Number(sec) * 1000).toISOString().slice(11, 16) + " UTC";
+
+/** A small amount to four places, signed: a round's result on a small vault is under a cent. */
+function fmtSmall(units: bigint): string {
+  const neg = units < 0n;
+  const u = neg ? -units : units;
+  return (neg ? "−$" : "+$") + (u / 1_000_000n).toLocaleString("en-US") + "." + ((u % 1_000_000n) / 100n).toString().padStart(4, "0");
+}
+
+/** The line that says where the rounds stand now. */
+export function roundStatus(d: VaultData, rounds: Round[] | null, everySec: number | null, nowSec: number): string {
+  if (d.epoch.defaulted) return "The vault is closed: a default was declared in round " + d.epoch.id.toString() + ".";
+  if (d.epoch.open) return "Round " + d.epoch.id.toString() + " is open: $" + fmtUsd(d.epoch.drawn) + " is out with the operator, " + timeLeft(d.epoch.deadline, nowSec) + ".";
+  const last = rounds !== null && rounds.length > 0 ? rounds[0] : null;
+  if (last !== null && everySec !== null) {
+    const left = Number(last.startedAt) + everySec - nowSec;
+    if (left > 45) return "No round is open. The next opens in about " + Math.ceil(left / 60) + " min.";
+    if (left > -180) return "No round is open. The next opens any moment.";
+  }
+  return "No round is open now.";
+}
+
+function RoundRow({ r, explorerBase }: { r: Round; explorerBase: string }) {
+  const result = depositorsResult(r);
+  return (
+    <li className="vault-round">
+      <span className="vault-round-id">Round {r.id.toString()} · {clockUtc(r.startedAt)}</span>
+      {r.end === null ? (
+        <span>Drew ${fmtUsd(r.draw)}; open</span>
+      ) : r.end.kind === "default" ? (
+        <span>Drew ${fmtUsd(r.draw)}, did not settle. <a className="vault-hash" href={explorerBase + "/tx/" + r.end.tx} target="_blank" rel="noreferrer">Default declared</a>: ${fmtUsd(r.end.moved)} of bond moved to depositors</span>
+      ) : (
+        <>
+          <span>Drew ${fmtUsd(r.draw)}, <a className="vault-hash" href={explorerBase + "/tx/" + r.end.tx} target="_blank" rel="noreferrer">returned ${fmtUsd(r.end.returned)}</a></span>
+          {result !== null && (
+            <span className="vault-round-result">
+              Depositors {fmtSmall(result)} ({pctOf(result, r.assetsAtStart)})
+              {r.end.fromBond > 0n ? "; $" + fmtUsd(r.end.fromBond) + " of the loss came out of the bond" : r.end.fee > 0n ? "; operator’s fee " + fmtSmall(r.end.fee).slice(1) : ""}
+            </span>
+          )}
+        </>
+      )}
+    </li>
+  );
+}
 
 export function VaultView(p: VaultViewProps) {
   const d = p.data;
@@ -101,6 +155,11 @@ export function VaultView(p: VaultViewProps) {
     <main className="vault">
       <header className="vault-head">
         <h1 className="vault-name">BASKET</h1>
+        <p className="vault-lede">
+          A vault for an operator that quotes one budget across the reward pools of Gemini’s
+          prediction markets. Depositors fund it. The contract caps what the operator may take, sets
+          its deadline, and puts the operator’s own bond first in line for a loss.
+        </p>
         <p className="vault-who">{p.vaultName !== "" && <>Vault: <span className="vault-addr">{p.vaultName}</span> · </>}Wallet: <span className="vault-addr">{short(p.address)}</span></p>
       </header>
 
@@ -150,6 +209,26 @@ export function VaultView(p: VaultViewProps) {
         )}
       </section>
 
+      <section className="vault-rounds" aria-label="rounds">
+        <h2 className="vault-terms-head">Rounds</h2>
+        <p className="vault-figure vault-round-now" data-round-now="">{roundStatus(d, p.rounds ?? null, p.roundEverySec ?? null, p.nowSec)}</p>
+        {p.rounds != null && p.rounds.filter((r) => r.end !== null).length > 0 && (
+          <ol className="vault-round-list" aria-label="recent rounds">
+            {p.rounds.filter((r) => r.end !== null).slice(0, 5).map((r) => <RoundRow key={r.id.toString()} r={r} explorerBase={p.explorerBase} />)}
+          </ol>
+        )}
+      </section>
+
+      <section className="vault-how" aria-label="how it works">
+        <h2 className="vault-terms-head">How it works</h2>
+        <ol className="vault-how-list">
+          <li>You deposit. Your money sits in the contract, not with the operator.</li>
+          <li>To open a round the operator puts the hash of its plan on chain, then may draw up to the limit below, and no more.</li>
+          <li>It must send the money back before the deadline. A gain lifts what you hold; a loss comes out of the operator’s bond first.</li>
+          <li>If the deadline passes unsettled, anyone may declare a default. The whole bond moves to depositors.</li>
+        </ol>
+      </section>
+
       <section className="vault-terms" aria-label="the vault's terms">
         <h2 className="vault-terms-head">The vault’s terms</h2>
         <dl className="vault-terms-list">
@@ -160,7 +239,7 @@ export function VaultView(p: VaultViewProps) {
           <dt>Cap</dt>
           <dd>${fmtUsd(d.cap)} in all (${fmtUsd(d.room + 5_000n)} of room left)</dd>
           <dt>Round length</dt>
-          <dd>{d.epochSeconds.toString()} seconds{d.epoch.open ? ", " + timeLeft(d.epoch.deadline, p.nowSec) : ", no round open now"}</dd>
+          <dd>{Number(d.epochSeconds) % 60 === 0 && Number(d.epochSeconds) >= 120 ? (Number(d.epochSeconds) / 60).toString() + " minutes" : d.epochSeconds.toString() + " seconds"}{d.epoch.open ? ", " + timeLeft(d.epoch.deadline, p.nowSec) : ", no round open now"}</dd>
           {d.epoch.open && (
             <>
               <dt>This round ends</dt>
@@ -187,6 +266,11 @@ export function VaultView(p: VaultViewProps) {
       </section>
 
       {!urgent && !d.epoch.defaulted && quietDefault}
+
+      <p className="vault-links">
+        <a className="vault-hash" href={p.explorerBase + "/address/" + p.vaultAddress} target="_blank" rel="noreferrer">The contract on Arc’s explorer</a>
+        {p.sourceUrl != null && <> · <a className="vault-hash" href={p.sourceUrl} target="_blank" rel="noreferrer">Source and the operator’s screen</a></>}
+      </p>
 
       <TestMoneyBanner />
     </main>
@@ -239,6 +323,7 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
   const [data, setData] = useState<VaultData | null>(null);
   const [vaultName, setVaultName] = useState<string | null>(null);
   const [forFees, setForFees] = useState<bigint>(0n);
+  const [rounds, setRounds] = useState<Round[] | null>(null);
 
   // Made once, kept across renders: the wallet, the relayer client, the network reader and the device
   // id. The vault reader waits for the relayer's info to learn USDC's address (never hard-coded here).
@@ -421,6 +506,35 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
     if (lagging && nowSec % 4 === 0) void reload();
   }, [lagging, nowSec, reload]);
 
+  // The recent rounds are read when the page first has the vault and again whenever a round opens
+  // or ends: one request each time, not one at every timed read. A refusal leaves the last list up.
+  const headRef = useRef<bigint | null>(null);
+  headRef.current = data?.blockNumber ?? headRef.current;
+  const roundKey = data === null ? null : data.epoch.id.toString() + (data.epoch.open ? "o" : "c") + (data.epoch.defaulted ? "d" : "");
+  const epochSeconds = data?.epochSeconds ?? null;
+  useEffect(() => {
+    const k = kit.current;
+    if (k === null || roundKey === null || epochSeconds === null) return;
+    let on = true;
+    // Asked a moment after the vault's own read, and again if the node turns it back as over its
+    // rate (seen on the public page, 2026-11-20: asked in the same instant, it was refused).
+    const pause = (ms: number) => new Promise((done) => setTimeout(done, ms));
+    void (async () => {
+      for (const wait of [1_500, 4_000, 9_000, 20_000]) {
+        await pause(wait);
+        if (!on) return;
+        try {
+          const r = await readRounds(k.client, vaultRef.current, epochSeconds, headRef.current ?? undefined);
+          if (on) setRounds(r);
+          return;
+        } catch {
+          // try again after the next, longer wait
+        }
+      }
+    })();
+    return () => { on = false; };
+  }, [roundKey, epochSeconds]);
+
   if (kit.current === null) return <CannotKeepWallet error={keyError.current ?? error} />;
   if (data === null) return <Reading error={error} />;
 
@@ -436,6 +550,7 @@ export function VaultApp({ settings }: { settings: VaultSettings }) {
       vaultName={vaultName ?? ""} vaultAddress={vaultRef.current} address={kit.current.wallet.address} data={data} step={step} nowSec={nowSec}
       deadlinePassed={deadlinePassed} explorerBase={settings.explorer} busy={busy} error={error} notice={notice}
       onPrimary={() => void runStep(step)} onDeclareDefault={() => void runDefault()}
+      rounds={rounds} roundEverySec={settings.roundEverySec ?? null} sourceUrl={settings.sourceUrl ?? null}
     />
   );
 }

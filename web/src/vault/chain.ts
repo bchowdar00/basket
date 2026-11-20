@@ -40,6 +40,7 @@ export type VaultData = {
   balance: bigint; // the phone's test-dollar balance
   allowance: bigint; // what the phone has allowed the vault to take
   blockTimestamp: bigint; // the chain's own latest block time, unix seconds (never the phone's clock)
+  blockNumber?: bigint; // that block's number, so the rounds can be read without asking for it again
 };
 
 const VAULT_ABI = parseAbi([
@@ -116,6 +117,7 @@ export function vaultChain(a: { reader: VaultReader; vault: Address; usdc: Addre
         balance,
         allowance,
         blockTimestamp: block.timestamp,
+        ...(typeof block.number === "bigint" ? { blockNumber: block.number } : {}),
       };
     },
 

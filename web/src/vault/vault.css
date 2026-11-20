@@ -167,3 +167,21 @@
 .vault-default-live .vault-declare:not(:disabled):hover { background: #8a2f23; border-color: #8a2f23; }
 /* And once it is declared: what happened, stated once, no button. */
 .vault-default-done { border: 1px solid var(--ink); background: var(--linen-2); padding: 14px; margin: 0 0 20px; }
+
+/* ---- What the page is and what the rounds did, 2026-11-20 ---------------- */
+
+/* One paragraph under the name: what this is, before any figure. */
+.vault-lede { margin: 0 0 10px; font-size: 14px; line-height: 1.5; color: var(--ink); max-width: 50ch; text-wrap: pretty; }
+
+.vault-rounds, .vault-how { margin: 0 0 18px; padding: 0 0 16px; border-bottom: 1px solid var(--cane); }
+.vault-round-now { font-size: 14px; }
+.vault-round-list { list-style: none; margin: 10px 0 0; padding: 0; }
+.vault-round { display: grid; gap: 1px; padding: 8px 0; border-top: 1px solid var(--cane); font-size: 13px; font-variant-numeric: tabular-nums; }
+.vault-round-id { font-family: var(--cond); font-stretch: 75%; text-transform: uppercase; letter-spacing: 0.04em; font-size: 11px; color: var(--ink-quiet); }
+.vault-round-result { color: var(--ink); }
+
+.vault-how-list { margin: 6px 0 0; padding-left: 20px; font-size: 13px; line-height: 1.5; color: var(--ink); max-width: 50ch; }
+.vault-how-list li { margin: 0 0 6px; padding-left: 2px; text-wrap: pretty; }
+.vault-how-list li::marker { color: var(--ink-quiet); }
+
+.vault-links { margin: 0 0 4px; font-size: 13px; }

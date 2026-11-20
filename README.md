@@ -4,7 +4,7 @@ Basket has two halves. The first is an operator's screen on Gemini Prediction Ma
 
 What it is not: it is not a trading bot. It places no order on any exchange and holds no exchange key. The operator is simulated. All money on chain is test USDC on Arc's test network and has no value, and every round in the demo closes with a simulated result.
 
-- **Phone page (the vault, from a phone):** https://basket-ubc.westus.azurecontainer.io/ No app or wallet is needed: add funds, allow, deposit. A demo round opens on this vault by itself about every ten minutes and closes about thirty seconds later with a small simulated gain; the vault's round length is five minutes, which is the operator's deadline to settle.
+- **Phone page (the vault, from a phone):** https://basket-ubc.westus.azurecontainer.io/ No app or wallet is needed: add funds, allow, deposit. A demo round opens on this vault by itself about every ten minutes and closes about thirty seconds later with a small simulated gain; the vault's round length is five minutes, which is the operator's deadline to settle. The page lists each round as it closes and says when the next is due.
 - **Video:** [link to be supplied]
 
 ## 1. What it does
@@ -38,13 +38,13 @@ BASKET_FEED=live BASKET_READ_UNREAD=1 npm run dev -w web
 
 Open the address Vite prints. `BASKET_FEED` chooses where the screen's figures come from:
 
-- `live`: the dev server reads Gemini's public API itself, paced as section 7 says, and keeps every raw answer in a folder outside the repository. This is the one to use from a fresh clone. "Read every pool for the allocator" takes about twenty minutes at that pacing.
+- `live`: the dev server reads Gemini's public API itself, paced as section 7 says, and keeps every raw answer in a folder outside the repository. This is the one to use from a fresh clone. "Read every pool for the allocator" takes about thirty minutes at that pacing (1,794 seconds for 80 pools when timed from a fresh clone on 2026-11-20).
 - `kept`: replays answers a `live` run already kept, asking nothing of Gemini.
 - unset: replays the folder of an engine run, read-only.
 
 `BASKET_LIVE_DIR` and `BASKET_FORWARD_DIR` name those folders (defaults under `~/Data/hackathons/vault/`). `BASKET_READ_UNREAD=1` also reads the books of contracts whose listed prices could not be read. No secret is read by the screen.
 
-**The phone page** is `web/vault.html`. Its five settings come from the environment at build time: `VITE_VAULT_CHAIN_ID`, `VITE_VAULT_RPC`, `VITE_VAULT_EXPLORER`, `VITE_VAULT_RELAYER`, `VITE_VAULT_VAULT`.
+**The phone page** is `web/vault.html`. Its five settings come from the environment at build time: `VITE_VAULT_CHAIN_ID`, `VITE_VAULT_RPC`, `VITE_VAULT_EXPLORER`, `VITE_VAULT_RELAYER`, `VITE_VAULT_VAULT`. Two more are optional: `VITE_VAULT_ROUND_EVERY` (about how often a round opens on that deployment, in seconds, so the page can say when the next is due) and `VITE_VAULT_SOURCE` (a link to the source). The page says what the vault is, shows the one next step, and lists the vault's recent rounds from its own events: what the operator drew, what it sent back, and the result for depositors. The public node answers for at most 10,000 blocks of events, so that list is the last hour or so, not the whole history.
 
 ```
 cd web && npx vite build -c vite.public.config.ts
@@ -96,7 +96,7 @@ npm test -w contracts
 | Main vault: two-day round; the engine commits its reads here | `0x41b72ae9a2e352cbfb77950715606f06f5e4d327` | `deploy/terms-vault.json` |
 | Demo vault (`stage6`): five-minute round; the one the phone page opens; a demo round runs on it about every ten minutes | `0xc8435058c05ff654f8091a9f05273e21ab46e928` | `deploy/terms-stage6.json` |
 | Spare (`stage5`): one-minute round; bonded and unused (`?vault=stage5` on the phone page) | `0x813570cd78318372eca5e20ae876daa8c319d798` | `deploy/terms-stage5.json` |
-| `stage`: one-minute round; the phone page's vault until 2026-11-20, open, no longer run | `0x1781eaafe2b674056f64a7daee1fb77fd8e85b8b` | `deploy/terms-stage.json` |
+| `stage`: one-minute round; the phone page's vault until 2026-11-20, no longer run | `0x1781eaafe2b674056f64a7daee1fb77fd8e85b8b` | `deploy/terms-stage.json` |
 | `stage2`: one-minute round; in default since a rehearsal on 2026-11-18, closed for good | `0x7653ac79ed456c76eb445482ebe832b15286bb94` | `deploy/terms-stage2.json` |
 | `stage3`: one-minute round; a round was left open past its deadline on 2026-11-19 and a default was declared from the phone page on 2026-11-20, closed for good | `0x6dacabf26d0af405b4603600bc6d622e9d540ffd` | `deploy/terms-stage3.json` |
 | `stage4`: one-minute round; a default was declared here from the phone page on 2026-11-19, closed for good | `0x493aa0b9b855fe4b06769e8461ee807c9815d6b0` | `deploy/terms-stage4.json` |
@@ -117,7 +117,7 @@ The engine's rule hash, named on chain before its first read: `35e939081fa8e0b4e
 - **Draw limit.** For one round the operator may take at most one and a half times the bond (`drawBondHalves` 3) and at most half the vault (`drawVaultBps` 5000). So the most it can lose or take in a round is a number on chain before the round starts.
 - **Only dollars count.** A round closes when the operator sends USDC back. The result is what came back less what went out. The contract never takes a posted value.
 - **Fee on a gain.** The operator keeps 20% of a gain (`gainBps` 2000); the rest raises the share price.
-- **Deadline and default.** Two days for the main vault, one minute for the stage vault. If a round is not closed in time, anyone may declare a default: the whole bond moves to the depositors and the vault takes no new round.
+- **Deadline and default.** Two days for the main vault, five minutes for the demo vault, one minute for the other stage vaults. If a round is not closed in time, anyone may declare a default: the whole bond moves to the depositors and the vault takes no new round.
 - **Deposit cap.** 100,000 USDC for the main vault and 10,000 for the stage vault. The vault is small on purpose.
 - **Plan and reads on chain.** A round names the hash of the operator's plan before it draws, and the engine commits one hash for every read, so the record cannot be rewritten after.
 - **Shares** are priced through a virtual share, rounding against whoever is buying or selling, so the first depositor cannot move the price on the second.
@@ -184,8 +184,8 @@ AI tools were used to write and review code throughout the week.
 `npm test` from the root, and `npm test --prefix services/relayer`. Counts as of 2026-11-20:
 
 - `packages/score`, `packages/rule`, `packages/ledger` (`node --test`): 31, 32, 52
-- `web` (Vitest): 162
-- `contracts` (Hardhat, local chain): 70
+- `web` (Vitest): 168
+- `contracts` (Hardhat, local chain): 71
 - `services/engine` (`node --test`): 107
 - `services/relayer` (`node --test`): 61
 - `scripts/` (`node --test`): 17, among them the check that no source file can place an order

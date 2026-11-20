@@ -108,6 +108,19 @@ describe("runSteps on the local chain", () => {
     assert.equal(await w.vault.read.bond(), 3_000_000n, "bond posted, but the unbond after the failed open did not run");
     assert.equal((await w.vault.read.epoch())[1], false, "no epoch ever opened");
   });
+
+  it("with a floor, no round opens while the operator holds less than it, and one opens when it holds more", async () => {
+    const w = await setup();
+    await w.vault.write.deposit([100n * USD], { account: w.alice.account });
+    await drive(w, w.operator, "bond:3000000");
+    const held = (await w.usdc.read.balanceOf([w.operator.account.address])) as bigint;
+    const run = (floor: bigint) =>
+      runSteps({ reader: w.publicClient, wallet: w.operator, vault: w.vault, usdc: w.usdc, steps: parseSteps("open:1000000"), floor, sleep: async () => {}, log: () => {} });
+    await assert.rejects(run(held + 1n), /open refused/);
+    assert.equal((await w.vault.read.epoch())[1], false, "nothing was opened under the floor");
+    await run(held);
+    assert.equal((await w.vault.read.epoch())[1], true);
+  });
 });
 
 describe("resolveVault refusals (before anything is sent)", () => {
