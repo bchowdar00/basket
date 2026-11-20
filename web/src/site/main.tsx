@@ -12,48 +12,57 @@ import { VaultApp } from "../vault/VaultApp.tsx";
 import "../ui/weave.css";
 import "../vault/vault.css";
 import "./site.css";
+import "./restyle.css";
+import meshUrl from "./assets/mesh.svg";
 
-const STEPS: { href: string; name: string; says: string }[] = [
-  { href: "#plan", name: "Plan a budget", says: "See where the scoring rule would credit a budget most." },
-  { href: "#fund", name: "Fund the vault", says: "Deposit test dollars into the contract an operator would draw from." },
-  { href: "#rounds", name: "Watch a round", says: "The operator draws, returns the money, and your holding moves." },
-  { href: "#safety", name: "The safety net", says: "Miss a deadline and anyone can move its bond to depositors." },
+// A step's name in the bar and on its section, and what the opening says it is for.
+const STEPS: { href: string; name: string; does: string; says: string }[] = [
+  { href: "#plan", name: "Plan a budget", does: "Find the gaps", says: "Put a budget where the exchange’s published score credits a two-sided quote most: the thin markets." },
+  { href: "#fund", name: "Fund the vault", does: "Fund them safely", says: "Depositors back an operator through a contract that caps every draw." },
+  { href: "#rounds", name: "Watch a round", does: "Keep it checkable", says: "Every plan’s hash goes on chain with its draw, so the record cannot be rewritten." },
+  { href: "#safety", name: "The safety net", does: "Put the bond first", says: "The operator’s own bond takes a loss first, and anyone can enforce the deadline." },
 ];
 
 export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
   return (
     <div className="site">
       <nav className="site-nav" aria-label="the steps">
-        <a className="site-mark" href="#top">BASKET</a>
+        <a className="site-mark" href="#top">Basket</a>
         <ol className="site-nav-steps">
           <li><a href="#example">Example</a></li>
-          {STEPS.map((s, i) => <li key={s.href}><a href={s.href}>{(i + 1) + ". " + s.name}</a></li>)}
+          {STEPS.map((s) => <li key={s.href}><a href={s.href}>{s.name}</a></li>)}
         </ol>
       </nav>
 
       <header id="top" className="site-intro">
-        <h1 className="site-title">One budget across every reward pool, with the operator’s own money first in line.</h1>
-        <p className="site-lede">
-          Gemini pays makers for keeping quotes resting in its prediction markets, and splits each reward pool by a
-          score it publishes. Basket works out where a budget would be credited most, and pairs it with a vault an
-          operator would draw that budget from, its own bond first in line.
-        </p>
-        <p className="site-start"><a className="site-go" href="#plan">Start with a budget</a></p>
+        <div className="mesh" aria-hidden="true"><img className="mesh-drift" src={meshUrl} alt="" /></div>
+        <ul className="mesh-legend" aria-label="what the woven lines stand for">
+          <li>Each strand, a market where depth is thin</li>
+          <li>Woven across them, one budget placed where depth pays</li>
+          <li>Underneath, the operator’s own bond</li>
+        </ul>
+        <div className="site-intro-copy">
+          <h1 className="site-title"><span>A liquidity engine for</span> <span>thin prediction markets.</span></h1>
+          <p className="site-lede">
+            Prediction markets are deep in a few headline markets and thin almost everywhere else, Gemini included.
+            Basket is built to put depth there.
+          </p>
+          <p className="site-start"><a className="site-go" href="#plan">Start with a budget</a></p>
+        </div>
         <ol className="site-steps">
           {STEPS.map((s, i) => (
             <li key={s.href}>
-              <a href={s.href}>
+              <a href={s.href} aria-label={(i + 1) + ". " + s.name + ": " + s.does}>
                 <span className="site-step-n">{i + 1}</span>
-                <span className="site-step-name">{s.name}</span>
+                <span className="site-step-name">{s.does}</span>
                 <span className="site-step-says">{s.says}</span>
               </a>
             </li>
           ))}
         </ol>
         <p className="site-note" role="note">
-          A working demo you can use. Step 1 runs on Gemini’s live public market data or on invented markets, and
-          says which. Steps 2 to 4 use test USDC on Arc’s test network with a stand-in operator. No order is placed
-          on any exchange.
+          Live on Gemini’s public data, or invented markets, and says which. The vault runs on Arc’s test network
+          with test USDC and a stand-in operator. No order is placed on any exchange.
         </p>
       </header>
 
@@ -62,8 +71,9 @@ export function Site({ env }: { env: ReturnType<typeof readVaultEnv> }) {
       <section id="plan" className="site-section" aria-labelledby="plan-h">
         <h2 id="plan-h" className="site-h">1. Plan a budget</h2>
         <p className="site-say">
-          Type a budget. Basket works out the quotes the published score would credit most across every pool, and
-          what they would cost. The credit figures are floors, not forecasts.
+          Type a budget. From the books and reward pools shown here, Basket picks the quotes the published score
+          would credit most, and shows what they would tie up and the most they could lose. The credit figures are
+          floors at those books, not forecasts.
         </p>
         <App sim shared vaultHref="#fund" />
       </section>
